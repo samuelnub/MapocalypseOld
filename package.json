@@ -1,0 +1,16 @@
+{
+  "name": "mapocalypse",
+  "version": "0.0.1",
+  "description": "aaaa! it's the apocalypse on google maps help pls",
+  "main": "./src/main.js",
+  "scripts": {
+    "test": "browserify ./src/main.js -o index.js"
+  },
+  "keywords": [
+    "map",
+    "google",
+    "game"
+  ],
+  "author": "Sam Y",
+  "license": "GPL-3.0"
+}

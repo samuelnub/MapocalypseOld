@@ -1,0 +1,77 @@
+body {
+    font-family: 'VT323', monospace;
+    background-color: gray;
+    overflow: hidden;
+    margin: 0px;
+}
+
+#warning {
+    position: absolute;
+    z-index: -50;
+    left: 10%;
+    top: 10%;
+}
+
+#map {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    
+}
+
+#console {
+    --console-padding: 6px;
+    --console-font-size: 1em;
+
+    position: absolute;
+    right: 5%;
+    bottom: 5%;
+    z-index: 10;
+    background-color: rgba(0, 0, 0, 0.5);
+    border: 2px solid rgba(50, 255, 50, 0.5);
+    font-size: var(--console-font-size);
+    text-align: left;
+    color: white;
+    width: calc(300px + calc(100vw / 5));
+    height: calc(200px + calc(100vh / 5));
+}
+
+#console-header {
+    position: absolute;
+    padding: var(--console-padding);
+    cursor: move;
+    z-index: 12;
+    left: 0%;
+    right: 0%;
+    background-color: rgba(150, 150, 150, 0.5);
+}
+
+#console-text-area {
+    position: absolute;
+    padding: 0px var(--console-padding) var(--console-padding);
+    overflow-y: scroll;
+    overflow-wrap: break-word;
+    z-index: 11;
+    left: 0%;
+    right: 0%;
+    top: calc(calc(var(--console-padding) + var(--console-padding)) + var(--console-font-size));
+    bottom: 0%;
+}
+
+#console-text-area-log {
+    position: relative;
+    left: 0%;
+    right: 0%;
+    top: 0%;
+}
+
+#console-text-area-input[type="text"] {
+    font-family: inherit;
+    font-size: var(--console-font-size);
+    color: inherit;
+    position: relative;
+    border: none;
+    background-color: transparent;
+    outline: none;
+    width: 100%;
+}

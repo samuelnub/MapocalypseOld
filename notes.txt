@@ -1,0 +1,5 @@
+3 Nov 2017
+    hello!
+    by the way, i love the function(){}.bind(this) method of binding the
+    "this" context
+    compiling: browserify ./src/main.js -o index.js
