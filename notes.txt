@@ -3,3 +3,8 @@
     by the way, i love the function(){}.bind(this) method of binding the
     "this" context
     compiling: browserify ./src/main.js -o index.js
+    TODO: help command, doh (maybe get event listeners)
+
+4 Nov 2017
+    refactoring
+    saving/loading works !!
