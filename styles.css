@@ -78,6 +78,31 @@ body {
     top: 0%;
 }
 
+#console-text-area-log>p {
+    position: relative;
+    padding: 0px;
+    margin: 0px;
+    left: 0%;
+    right: 0%;
+}
+
+#console-text-area-log>p>button {
+    margin: 0px;
+    padding: 0px;
+    border: none;
+    background-color: rgba(50, 255, 50, 0.5);
+    outline: none;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: var(--console-font-size);
+    color: inherit;
+    transition: all 0.1s;
+}
+
+#console-text-area-log>p>button:active {
+    transform: scale(0.8);
+}
+
 #console-text-area-input[type="text"] {
     font-family: inherit;
     font-size: var(--console-font-size);

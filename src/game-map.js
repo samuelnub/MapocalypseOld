@@ -242,6 +242,5 @@ function GameMap(game) {
     this.map.setMapTypeId("mapocalypse_style");
 
     game.mainDiv.appendChild(this.mapDiv);
-
 }
 

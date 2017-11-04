@@ -44,11 +44,24 @@ function GameConsole(game) {
     this.setuDefaultCommands();
 }
 
-GameConsole.prototype.writeLine = function(line) {
+GameConsole.prototype.writeLine = function(line, doNotSanitize, callback) {
     /*
     line = string (duh)
+
+    doNotSanitize = boolean (explicitly not sanitize... for linebreaks and html elements)
+
+    callback function:
+        element = P element that contains the line just written
     */
-    this.textAreaLogDiv.innerText += helpers.sanitizeInput(line) + "\n";
+    let lineP = document.createElement("p");
+    lineP.classList.add("console-line");
+    lineP.innerHTML = (doNotSanitize ? line : helpers.sanitizeInput(line));
+    this.textAreaLogDiv.appendChild(lineP);
+    if(typeof callback === "function") {
+        setTimeout(function() {
+            callback(lineP);
+        }, 0);
+    }
 }
 
 GameConsole.prototype.readLine = function() {
@@ -99,8 +112,8 @@ GameConsole.prototype.setuDefaultCommands = function() {
                 "If you neeed help, just type 'help' and some underpaid",
                 "civil service workers will come to your assistance!",
                 "Good luck, buddy."
-            ].join("\n");
-            this.writeLine(output);
+            ].join("<br>");
+            this.writeLine(output, true);
         }.bind(this)
     );
     this.addCommandListener(introCommand);
@@ -113,18 +126,18 @@ GameConsole.prototype.setuDefaultCommands = function() {
         function(args) {
             if(args[0] in this.eventsElement.commandListeners) {
                 let commandDocumentation = this.eventsElement.commandListeners[args[0]];
-                let output = "Help regarding the " + commandDocumentation.command + " command:\n";
-                output += "'" + commandDocumentation.description + "'\n";
+                let output = "Help regarding the " + commandDocumentation.command + " command:<br>";
+                output += "'" + commandDocumentation.description + "'<br>";
                 output += "Syntax: " + commandDocumentation.command + " " + helpers.sanitizeInput(commandDocumentation.args);
-                this.writeLine(output);
+                this.writeLine(output, true);
             }
             else {
                 if(args.length === 0) {
-                    let output = "You can ask for help regarding:\n";
+                    let output = "You can ask for help regarding:<br>";
                     for(const key of Object.keys(this.eventsElement.commandListeners)) {
                         output += "'" + key + "' ";
                     }
-                    this.writeLine(output);
+                    this.writeLine(output, true);
                 }
                 else {
                     this.writeLine("Sorry! That command doesn't exist!");
@@ -163,6 +176,7 @@ function Documentation(command, args, description, callback) {
     self.callback = callback;
 }
 },{"./helpers":5}],2:[function(require,module,exports){
+const helpers = require("./helpers");
 const GameConsole = require("./game-console");
 
 exports.GameData = GameData;
@@ -204,10 +218,17 @@ GameData.prototype.setupCommands = function() {
         "Save and output the savedata for you to keep",
         function(args) {
             this.save(function(savedata) {
-                this.game.gameConsole.writeLine([
+                let outputLine = [
                     "Here's your savedata. Keep it a local text file or something:",
                     savedata
-                ].join("\n"));
+                ].join("<br>");
+                this.game.gameConsole.writeLine(outputLine, true, function(element) {
+                    element.innerHTML += "<br>";
+                    let copyButton = helpers.createButton("Copy", function(button) {
+                        helpers.copyToClipboard(savedata);
+                    });
+                    element.appendChild(copyButton);
+                }.bind(this));
             }.bind(this));
         }.bind(this)
     );
@@ -230,6 +251,7 @@ GameData.prototype.load = function(savedata) {
             let loadedKeys = Object.keys(loadedData).sort();
             if(JSON.stringify(ogKeys) === JSON.stringify(loadedKeys)) {
                 this.savedata = Object.assign({}, loadedData);
+                this.game.gameConsole.writeLine("Just loaded your save successfully!");
             }
             else {
                 throw "Aw man, the keys don't match";
@@ -332,7 +354,7 @@ GameData.prototype.decompress = function(compressed) {
     }
     return result;
 }
-},{"./game-console":1}],3:[function(require,module,exports){
+},{"./game-console":1,"./helpers":5}],3:[function(require,module,exports){
 
 
 exports.GameMap = GameMap;
@@ -577,11 +599,11 @@ function GameMap(game) {
     this.map.setMapTypeId("mapocalypse_style");
 
     game.mainDiv.appendChild(this.mapDiv);
-
 }
 
 
 },{}],4:[function(require,module,exports){
+const helpers = require("./helpers");
 const GameMap = require("./game-map");
 const GameConsole = require("./game-console");
 const GameData = require("./game-data");
@@ -610,17 +632,35 @@ Game.prototype.setupCommands = function() {
                 this.gameConsole.writeLine("Do you want a [new] game or one from a [save] data?");
             }
             else if(args[0] === "new") {
-                
+                if(args[1] === "easy") {
+                    this.startNewGame(0);
+                }
+                else if(args[1] === "normal") {
+                    this.startNewGame(1);
+                }
+                else if(args[1] === "hard") {
+                    this.startNewGame(2);
+                }
             }
             else if(args[0] === "save") {
-
+                this.startSaveGame(args[1]);
             }
         }.bind(this)
     );
     this.gameConsole.addCommandListener(startCommand);
 }
 
-},{"./game-console":1,"./game-data":2,"./game-map":3}],5:[function(require,module,exports){
+Game.prototype.startNewGame = function (difficulty) {
+    /*
+    difficulty = integer (easy = 0/normal = 1/hard = 2)
+    */
+    this.gameConsole.writeLine("You chose the difficulty setting of: " + difficulty);
+}
+
+Game.prototype.startSaveGame = function(savedata) {
+    this.gameData.load(savedata);
+}
+},{"./game-console":1,"./game-data":2,"./game-map":3,"./helpers":5}],5:[function(require,module,exports){
 
 exports.draggableElement = draggableElement;
 function draggableElement(elmnt) {
@@ -677,6 +717,86 @@ function sanitizeInput(message, charLimit) {
     // (?!b|\/b|em|\/em|i|\/i|small|\/small|strong|\/strong|sub|\/sub|sup|\/sup|ins|\/ins|del|\/del|mark|\/mark|a|\/a|img|\/img|li|\/li|h|\/h|p|\/p|tt|\/tt|code|\/code|br|\/br|video|\/video|source|\/source)
 }
 
+exports.createButton = createButton;
+function createButton(text, callback) {
+    /*
+    Mostly for use within the console (make sure you disable
+    sanitization when you writeline())
+
+    text = string
+
+    callback function:
+        button element that was clicked
+
+    returns a butt-on lol
+    */
+    let butt = document.createElement("button");
+    butt.innerHTML = text;
+    butt.addEventListener("click", function(e) {
+        if(typeof callback === "function") {
+            callback(butt);
+        }
+    });
+    return butt;
+}
+
+exports.copyToClipboard = copyToClipboard;
+function copyToClipboard(text) {
+    var textArea = document.createElement("textarea");
+  
+    //
+    // *** This styling is an extra step which is likely not required. ***
+    //
+    // Why is it here? To ensure:
+    // 1. the element is able to have focus and selection.
+    // 2. if element was to flash render it has minimal visual impact.
+    // 3. less flakyness with selection and copying which **might** occur if
+    //    the textarea element is not visible.
+    //
+    // The likelihood is the element won't even render, not even a flash,
+    // so some of these are just precautions. However in IE the element
+    // is visible whilst the popup box asking the user for permission for
+    // the web page to copy to the clipboard.
+    //
+  
+    // Place in top-left corner of screen regardless of scroll position.
+    textArea.style.position = 'fixed';
+    textArea.style.top = 0;
+    textArea.style.left = 0;
+  
+    // Ensure it has a small width and height. Setting to 1px / 1em
+    // doesn't work as this gives a negative w/h on some browsers.
+    textArea.style.width = '2em';
+    textArea.style.height = '2em';
+  
+    // We don't need padding, reducing the size if it does flash render.
+    textArea.style.padding = 0;
+  
+    // Clean up any borders.
+    textArea.style.border = 'none';
+    textArea.style.outline = 'none';
+    textArea.style.boxShadow = 'none';
+  
+    // Avoid flash of white box if rendered for any reason.
+    textArea.style.background = 'transparent';
+  
+  
+    textArea.value = text;
+  
+    document.body.appendChild(textArea);
+  
+    textArea.select();
+  
+    try {
+      var successful = document.execCommand('copy');
+      var msg = successful ? 'successful' : 'unsuccessful';
+      console.log('Copying text command was ' + msg);
+    } catch (err) {
+      console.log('Oops, unable to copy');
+    }
+  
+    document.body.removeChild(textArea);
+  }
 },{}],6:[function(require,module,exports){
 const Game = require("./game");
 

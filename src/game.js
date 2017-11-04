@@ -1,3 +1,4 @@
+const helpers = require("./helpers");
 const GameMap = require("./game-map");
 const GameConsole = require("./game-console");
 const GameData = require("./game-data");
@@ -26,12 +27,31 @@ Game.prototype.setupCommands = function() {
                 this.gameConsole.writeLine("Do you want a [new] game or one from a [save] data?");
             }
             else if(args[0] === "new") {
-                
+                if(args[1] === "easy") {
+                    this.startNewGame(0);
+                }
+                else if(args[1] === "normal") {
+                    this.startNewGame(1);
+                }
+                else if(args[1] === "hard") {
+                    this.startNewGame(2);
+                }
             }
             else if(args[0] === "save") {
-
+                this.startSaveGame(args[1]);
             }
         }.bind(this)
     );
     this.gameConsole.addCommandListener(startCommand);
+}
+
+Game.prototype.startNewGame = function (difficulty) {
+    /*
+    difficulty = integer (easy = 0/normal = 1/hard = 2)
+    */
+    this.gameConsole.writeLine("You chose the difficulty setting of: " + difficulty);
+}
+
+Game.prototype.startSaveGame = function(savedata) {
+    this.gameData.load(savedata);
 }

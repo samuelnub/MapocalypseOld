@@ -1,3 +1,4 @@
+const helpers = require("./helpers");
 const GameConsole = require("./game-console");
 
 exports.GameData = GameData;
@@ -39,10 +40,17 @@ GameData.prototype.setupCommands = function() {
         "Save and output the savedata for you to keep",
         function(args) {
             this.save(function(savedata) {
-                this.game.gameConsole.writeLine([
+                let outputLine = [
                     "Here's your savedata. Keep it a local text file or something:",
                     savedata
-                ].join("\n"));
+                ].join("<br>");
+                this.game.gameConsole.writeLine(outputLine, true, function(element) {
+                    element.innerHTML += "<br>";
+                    let copyButton = helpers.createButton("Copy", function(button) {
+                        helpers.copyToClipboard(savedata);
+                    });
+                    element.appendChild(copyButton);
+                }.bind(this));
             }.bind(this));
         }.bind(this)
     );
@@ -65,6 +73,7 @@ GameData.prototype.load = function(savedata) {
             let loadedKeys = Object.keys(loadedData).sort();
             if(JSON.stringify(ogKeys) === JSON.stringify(loadedKeys)) {
                 this.savedata = Object.assign({}, loadedData);
+                this.game.gameConsole.writeLine("Just loaded your save successfully!");
             }
             else {
                 throw "Aw man, the keys don't match";

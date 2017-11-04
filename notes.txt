@@ -8,3 +8,5 @@
 4 Nov 2017
     refactoring
     saving/loading works !!
+    you can now do things to your outputted console lines with the callback,
+    which returns the p element (the gamedata save() is an example)

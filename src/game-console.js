@@ -43,11 +43,24 @@ function GameConsole(game) {
     this.setuDefaultCommands();
 }
 
-GameConsole.prototype.writeLine = function(line) {
+GameConsole.prototype.writeLine = function(line, doNotSanitize, callback) {
     /*
     line = string (duh)
+
+    doNotSanitize = boolean (explicitly not sanitize... for linebreaks and html elements)
+
+    callback function:
+        element = P element that contains the line just written
     */
-    this.textAreaLogDiv.innerText += helpers.sanitizeInput(line) + "\n";
+    let lineP = document.createElement("p");
+    lineP.classList.add("console-line");
+    lineP.innerHTML = (doNotSanitize ? line : helpers.sanitizeInput(line));
+    this.textAreaLogDiv.appendChild(lineP);
+    if(typeof callback === "function") {
+        setTimeout(function() {
+            callback(lineP);
+        }, 0);
+    }
 }
 
 GameConsole.prototype.readLine = function() {
@@ -98,8 +111,8 @@ GameConsole.prototype.setuDefaultCommands = function() {
                 "If you neeed help, just type 'help' and some underpaid",
                 "civil service workers will come to your assistance!",
                 "Good luck, buddy."
-            ].join("\n");
-            this.writeLine(output);
+            ].join("<br>");
+            this.writeLine(output, true);
         }.bind(this)
     );
     this.addCommandListener(introCommand);
@@ -112,18 +125,18 @@ GameConsole.prototype.setuDefaultCommands = function() {
         function(args) {
             if(args[0] in this.eventsElement.commandListeners) {
                 let commandDocumentation = this.eventsElement.commandListeners[args[0]];
-                let output = "Help regarding the " + commandDocumentation.command + " command:\n";
-                output += "'" + commandDocumentation.description + "'\n";
+                let output = "Help regarding the " + commandDocumentation.command + " command:<br>";
+                output += "'" + commandDocumentation.description + "'<br>";
                 output += "Syntax: " + commandDocumentation.command + " " + helpers.sanitizeInput(commandDocumentation.args);
-                this.writeLine(output);
+                this.writeLine(output, true);
             }
             else {
                 if(args.length === 0) {
-                    let output = "You can ask for help regarding:\n";
+                    let output = "You can ask for help regarding:<br>";
                     for(const key of Object.keys(this.eventsElement.commandListeners)) {
                         output += "'" + key + "' ";
                     }
-                    this.writeLine(output);
+                    this.writeLine(output, true);
                 }
                 else {
                     this.writeLine("Sorry! That command doesn't exist!");
