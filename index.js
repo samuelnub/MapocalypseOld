@@ -1,4 +1,223 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+module.exports=[
+    {
+        "elementType": "geometry",
+        "stylers": [
+            {
+                "color": "#ebe3cd"
+            }
+        ]
+    },
+    {
+        "elementType": "labels.text.fill",
+        "stylers": [
+            {
+                "color": "#523735"
+            }
+        ]
+    },
+    {
+        "elementType": "labels.text.stroke",
+        "stylers": [
+            {
+                "color": "#f5f1e6"
+            }
+        ]
+    },
+    {
+        "featureType": "administrative",
+        "elementType": "geometry.stroke",
+        "stylers": [
+            {
+                "color": "#c9b2a6"
+            }
+        ]
+    },
+    {
+        "featureType": "administrative.land_parcel",
+        "elementType": "geometry.stroke",
+        "stylers": [
+            {
+                "color": "#dcd2be"
+            }
+        ]
+    },
+    {
+        "featureType": "administrative.land_parcel",
+        "elementType": "labels.text.fill",
+        "stylers": [
+            {
+                "color": "#ae9e90"
+            }
+        ]
+    },
+    {
+        "featureType": "landscape.natural",
+        "elementType": "geometry",
+        "stylers": [
+            {
+                "color": "#cfc8ad"
+            }
+        ]
+    },
+    {
+        "featureType": "poi",
+        "elementType": "geometry",
+        "stylers": [
+            {
+                "color": "#dfd2ae"
+            }
+        ]
+    },
+    {
+        "featureType": "poi",
+        "elementType": "labels.text.fill",
+        "stylers": [
+            {
+                "color": "#93817c"
+            }
+        ]
+    },
+    {
+        "featureType": "poi.park",
+        "elementType": "geometry.fill",
+        "stylers": [
+            {
+                "color": "#aab18b"
+            }
+        ]
+    },
+    {
+        "featureType": "poi.park",
+        "elementType": "labels.text.fill",
+        "stylers": [
+            {
+                "color": "#447530"
+            }
+        ]
+    },
+    {
+        "featureType": "road",
+        "elementType": "geometry",
+        "stylers": [
+            {
+                "color": "#f5f1e6"
+            },
+            {
+                "weight": 0.5
+            }
+        ]
+    },
+    {
+        "featureType": "road.arterial",
+        "elementType": "geometry",
+        "stylers": [
+            {
+                "color": "#fdfcf8"
+            }
+        ]
+    },
+    {
+        "featureType": "road.highway",
+        "elementType": "geometry",
+        "stylers": [
+            {
+                "color": "#f8c967"
+            }
+        ]
+    },
+    {
+        "featureType": "road.highway",
+        "elementType": "geometry.stroke",
+        "stylers": [
+            {
+                "color": "#e9bc62"
+            }
+        ]
+    },
+    {
+        "featureType": "road.highway.controlled_access",
+        "elementType": "geometry",
+        "stylers": [
+            {
+                "color": "#e98d58"
+            }
+        ]
+    },
+    {
+        "featureType": "road.highway.controlled_access",
+        "elementType": "geometry.stroke",
+        "stylers": [
+            {
+                "color": "#db8555"
+            }
+        ]
+    },
+    {
+        "featureType": "road.local",
+        "elementType": "labels.text.fill",
+        "stylers": [
+            {
+                "color": "#806b63"
+            }
+        ]
+    },
+    {
+        "featureType": "transit.line",
+        "elementType": "geometry",
+        "stylers": [
+            {
+                "color": "#dfd2ae"
+            }
+        ]
+    },
+    {
+        "featureType": "transit.line",
+        "elementType": "labels.text.fill",
+        "stylers": [
+            {
+                "color": "#8f7d77"
+            }
+        ]
+    },
+    {
+        "featureType": "transit.line",
+        "elementType": "labels.text.stroke",
+        "stylers": [
+            {
+                "color": "#ebe3cd"
+            }
+        ]
+    },
+    {
+        "featureType": "transit.station",
+        "elementType": "geometry",
+        "stylers": [
+            {
+                "color": "#dfd2ae"
+            }
+        ]
+    },
+    {
+        "featureType": "water",
+        "elementType": "geometry.fill",
+        "stylers": [
+            {
+                "color": "#b7d5ca"
+            }
+        ]
+    },
+    {
+        "featureType": "water",
+        "elementType": "labels.text.fill",
+        "stylers": [
+            {
+                "color": "#92998d"
+            }
+        ]
+    }
+]
+},{}],2:[function(require,module,exports){
 const helpers = require("./helpers");
 
 exports.GameConsole = GameConsole;
@@ -12,6 +231,7 @@ function GameConsole(game) {
     */
     this.eventsElement = document.createElement("div"); // ghost element, oooo
     this.eventsElement.commandListeners = {}; // key: command string, value: documentation
+    this.subroutineIds = []; // array of uuid strings, if it's empty, the console is not claimed
 
 	const consoleDiv = document.createElement("div");
 	consoleDiv.id = "console";
@@ -33,12 +253,16 @@ function GameConsole(game) {
     this.textAreaInputDiv = document.createElement("input");
     this.textAreaInputDiv.id = "console-text-area-input";
     this.textAreaInputDiv.type = "text";
-    this.textAreaInputDiv.addEventListener("keyup", (e) => {
-        e.preventDefault();
-        if(e.keyCode === 13) {
-            this.readLine();
+
+    this.onEnter(function() {
+        if(this.subroutineIds.length === 0) {
+            const line = this.readLine();
+            const inputs = line.split(" ");
+            const command = inputs[0];
+            const args = inputs.splice(1, inputs.length-1);
+            this.executeCommand(command, args);
         }
-    });
+    }.bind(this), true);
     this.textAreaDiv.appendChild(this.textAreaInputDiv);
 
     this.setuDefaultCommands();
@@ -64,20 +288,53 @@ GameConsole.prototype.writeLine = function(line, doNotSanitize, callback) {
     }
 }
 
-GameConsole.prototype.readLine = function() {
+GameConsole.prototype.readLine = function(doNotClear) {
     /*
-    Processes input and emits an event of the command
-    (either some class is going to pick it up, or nothing's gonna happen)
+    doNotClear = boolean
+
+    returns line = string
     */
-    const inputs = helpers.sanitizeInput(this.textAreaInputDiv.value).split(" ");
-    const command = inputs[0];
-    const args = inputs.splice(1, inputs.length-1);
-    this.executeCommand(command, args);
-    this.textAreaInputDiv.value = "";
+    const line = helpers.sanitizeInput(this.textAreaInputDiv.value);
+    console.error("Readline says it has " + line);
+    if(!doNotClear) {
+        this.textAreaInputDiv.value = "";
+    }
+    return line;
+}
+
+GameConsole.prototype.onEnter = function(callback, dontRemoveEventListener) {
+    /*
+    When user presses enter, what do you wanna do? (mostly for subroutines)
+
+    callback function:
+        -no arguments (but you may want to read line within your callback, i assume)
+    
+    dontRemoveEventListener = boolean (probably dont configure this externally)
+    */
+    const callCallback = function(e) {
+        e.preventDefault();
+        if (e.keyCode === 13 && typeof callback === "function") {
+            setTimeout(function () {
+                callback();
+            }.bind(this), 0);
+            if(dontRemoveEventListener) {
+               return; 
+            }
+            else {
+                this.textAreaInputDiv.removeEventListener("keyup", callCallbackBound, true);
+            }
+        }
+    }
+    const callCallbackBound = callCallback.bind(this);
+    this.textAreaInputDiv.addEventListener("keyup", callCallbackBound, true);
+    //TODO: broken af
 }
 
 GameConsole.prototype.executeCommand = function(command, args) {
     /*
+    emits an event of the command
+    (either some class is going to pick it up, or nothing's gonna happen)
+
     command = string
 
     args = array of strings
@@ -96,6 +353,30 @@ GameConsole.prototype.addCommandListener = function(documentation) {
             documentation.callback(e.detail.args);
         }
     }.bind(this));
+}
+
+GameConsole.prototype.startSubroutine = function(subroutine) {
+    /*
+    If you want to use the console's input for multiple lines in your subroutine
+    Remember to endSubroutine() afterwards!
+
+    subroutine function:
+        subroutineId = string (uuid)
+    */
+    if(typeof subroutine === "function") {
+        let uuid = helpers.uuid();
+        this.subroutineIds.push(uuid);
+        setTimeout(function() {
+            subroutine(uuid);
+        }.bind(this), 0);
+    }
+}
+
+GameConsole.prototype.endSubroutine = function(subroutineId) {
+    /*
+    When your subroutine's done, remember to call this
+    */
+    this.subroutineIds.splice(this.subroutineIds.indexOf(subroutineId), 1);
 }
 
 GameConsole.prototype.setuDefaultCommands = function() {
@@ -170,12 +451,12 @@ function Documentation(command, args, description, callback) {
         args = array of strings
     */
     const self = this;
-    self.command = command;
-    self.args = args;
-    self.description = description;
-    self.callback = callback;
+    self.command = command || "unimplemented";
+    self.args = args || [""];
+    self.description = description || "Generic description (ask Sam to fill this up, damnit)";
+    self.callback = callback || function() { console.log("Unimplemented documentation of " + self.command); };
 }
-},{"./helpers":5}],2:[function(require,module,exports){
+},{"./helpers":6}],3:[function(require,module,exports){
 const helpers = require("./helpers");
 const GameConsole = require("./game-console");
 
@@ -354,7 +635,7 @@ GameData.prototype.decompress = function(compressed) {
     }
     return result;
 }
-},{"./game-console":1,"./helpers":5}],3:[function(require,module,exports){
+},{"./game-console":2,"./helpers":6}],4:[function(require,module,exports){
 
 
 exports.GameMap = GameMap;
@@ -368,224 +649,7 @@ function GameMap(game) {
     this.mapDiv = document.createElement("div");
     this.mapDiv.id = "map";
     const mapocalypseMapStyle = new google.maps.StyledMapType(
-        [
-            {
-              "elementType": "geometry",
-              "stylers": [
-                {
-                  "color": "#ebe3cd"
-                }
-              ]
-            },
-            {
-              "elementType": "labels.text.fill",
-              "stylers": [
-                {
-                  "color": "#523735"
-                }
-              ]
-            },
-            {
-              "elementType": "labels.text.stroke",
-              "stylers": [
-                {
-                  "color": "#f5f1e6"
-                }
-              ]
-            },
-            {
-              "featureType": "administrative",
-              "elementType": "geometry.stroke",
-              "stylers": [
-                {
-                  "color": "#c9b2a6"
-                }
-              ]
-            },
-            {
-              "featureType": "administrative.land_parcel",
-              "elementType": "geometry.stroke",
-              "stylers": [
-                {
-                  "color": "#dcd2be"
-                }
-              ]
-            },
-            {
-              "featureType": "administrative.land_parcel",
-              "elementType": "labels.text.fill",
-              "stylers": [
-                {
-                  "color": "#ae9e90"
-                }
-              ]
-            },
-            {
-              "featureType": "landscape.natural",
-              "elementType": "geometry",
-              "stylers": [
-                {
-                  "color": "#cfc8ad"
-                }
-              ]
-            },
-            {
-              "featureType": "poi",
-              "elementType": "geometry",
-              "stylers": [
-                {
-                  "color": "#dfd2ae"
-                }
-              ]
-            },
-            {
-              "featureType": "poi",
-              "elementType": "labels.text.fill",
-              "stylers": [
-                {
-                  "color": "#93817c"
-                }
-              ]
-            },
-            {
-              "featureType": "poi.park",
-              "elementType": "geometry.fill",
-              "stylers": [
-                {
-                  "color": "#aab18b"
-                }
-              ]
-            },
-            {
-              "featureType": "poi.park",
-              "elementType": "labels.text.fill",
-              "stylers": [
-                {
-                  "color": "#447530"
-                }
-              ]
-            },
-            {
-              "featureType": "road",
-              "elementType": "geometry",
-              "stylers": [
-                {
-                  "color": "#f5f1e6"
-                },
-                {
-                  "weight": 0.5
-                }
-              ]
-            },
-            {
-              "featureType": "road.arterial",
-              "elementType": "geometry",
-              "stylers": [
-                {
-                  "color": "#fdfcf8"
-                }
-              ]
-            },
-            {
-              "featureType": "road.highway",
-              "elementType": "geometry",
-              "stylers": [
-                {
-                  "color": "#f8c967"
-                }
-              ]
-            },
-            {
-              "featureType": "road.highway",
-              "elementType": "geometry.stroke",
-              "stylers": [
-                {
-                  "color": "#e9bc62"
-                }
-              ]
-            },
-            {
-              "featureType": "road.highway.controlled_access",
-              "elementType": "geometry",
-              "stylers": [
-                {
-                  "color": "#e98d58"
-                }
-              ]
-            },
-            {
-              "featureType": "road.highway.controlled_access",
-              "elementType": "geometry.stroke",
-              "stylers": [
-                {
-                  "color": "#db8555"
-                }
-              ]
-            },
-            {
-              "featureType": "road.local",
-              "elementType": "labels.text.fill",
-              "stylers": [
-                {
-                  "color": "#806b63"
-                }
-              ]
-            },
-            {
-              "featureType": "transit.line",
-              "elementType": "geometry",
-              "stylers": [
-                {
-                  "color": "#dfd2ae"
-                }
-              ]
-            },
-            {
-              "featureType": "transit.line",
-              "elementType": "labels.text.fill",
-              "stylers": [
-                {
-                  "color": "#8f7d77"
-                }
-              ]
-            },
-            {
-              "featureType": "transit.line",
-              "elementType": "labels.text.stroke",
-              "stylers": [
-                {
-                  "color": "#ebe3cd"
-                }
-              ]
-            },
-            {
-              "featureType": "transit.station",
-              "elementType": "geometry",
-              "stylers": [
-                {
-                  "color": "#dfd2ae"
-                }
-              ]
-            },
-            {
-              "featureType": "water",
-              "elementType": "geometry.fill",
-              "stylers": [
-                {
-                  "color": "#b7d5ca"
-                }
-              ]
-            },
-            {
-              "featureType": "water",
-              "elementType": "labels.text.fill",
-              "stylers": [
-                {
-                  "color": "#92998d"
-                }
-              ]
-            }
-          ], {name: "Mapocalypse Style"});
+        require("../resource/map-style.json"), {name: "Mapocalypse Style"});
     this.map = new google.maps.Map(this.mapDiv, {
         center: new google.maps.LatLng(53.551458, -1.923063),
         zoom: 10,
@@ -602,11 +666,13 @@ function GameMap(game) {
 }
 
 
-},{}],4:[function(require,module,exports){
+},{"../resource/map-style.json":1}],5:[function(require,module,exports){
 const helpers = require("./helpers");
 const GameMap = require("./game-map");
 const GameConsole = require("./game-console");
 const GameData = require("./game-data");
+
+const Tests = require("./tests");
 
 exports.Game = Game;
 
@@ -618,6 +684,8 @@ function Game() {
     this.gameConsole = new GameConsole.GameConsole(this); // should be setup first
     this.gameMap = new GameMap.GameMap(this);
     this.gameData = new GameData.GameData(this);
+
+    this.tests = new Tests.Tests(this);
 
     this.setupCommands();
 }
@@ -660,7 +728,7 @@ Game.prototype.startNewGame = function (difficulty) {
 Game.prototype.startSaveGame = function(savedata) {
     this.gameData.load(savedata);
 }
-},{"./game-console":1,"./game-data":2,"./game-map":3,"./helpers":5}],5:[function(require,module,exports){
+},{"./game-console":2,"./game-data":3,"./game-map":4,"./helpers":6,"./tests":8}],6:[function(require,module,exports){
 
 exports.draggableElement = draggableElement;
 function draggableElement(elmnt) {
@@ -740,10 +808,19 @@ function createButton(text, callback) {
     return butt;
 }
 
+exports.uuid = uuid;
+function uuid() {
+    // v4, from https://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+        var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
+}
+
 exports.copyToClipboard = copyToClipboard;
 function copyToClipboard(text) {
     var textArea = document.createElement("textarea");
-  
+    // Obtained from https://stackoverflow.com/questions/400212/how-do-i-copy-to-the-clipboard-in-javascript
     //
     // *** This styling is an extra step which is likely not required. ***
     //
@@ -797,7 +874,7 @@ function copyToClipboard(text) {
   
     document.body.removeChild(textArea);
   }
-},{}],6:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 const Game = require("./game");
 
 window.onload = init;
@@ -806,4 +883,37 @@ function init() {
 }
 
 
-},{"./game":4}]},{},[6]);
+},{"./game":5}],8:[function(require,module,exports){
+const GameConsole = require("./game-console");
+
+exports.Tests = Tests;
+function Tests(game) {
+    /*
+    Just for testing purposes
+
+    game = Game instance
+    */
+    let inp1, inp2;
+    game.gameConsole.addCommandListener(new GameConsole.Documentation(
+        "test",
+        [""],
+        "A test command for... testy purposes",
+        function (args) {
+            console.log(game.gameConsole.readLine(true) + " is what's in the readline");
+            game.gameConsole.startSubroutine(function(subroutineId) {
+                game.gameConsole.writeLine("Okay, give me the first number you want to add");
+                game.gameConsole.onEnter(function() {
+                    inp1 = game.gameConsole.readLine();
+                    game.gameConsole.writeLine("okay, give me the second number");
+                    game.gameConsole.onEnter(function() {
+                        inp2 = game.gameConsole.readLine();
+                        game.gameConsole.writeLine("lol you gave me " + inp1 + " and " + inp2 + " but i cant add them lmao");
+                        game.gameConsole.endSubroutine(subroutineId);
+                        console.log(inp1 + " and " + inp2);
+                    }.bind(this));
+                }.bind(this));
+            }.bind(this));
+        }.bind(this)
+    ));
+}
+},{"./game-console":2}]},{},[7]);

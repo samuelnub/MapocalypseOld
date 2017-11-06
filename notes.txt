@@ -10,3 +10,13 @@
     saving/loading works !!
     you can now do things to your outputted console lines with the callback,
     which returns the p element (the gamedata save() is an example)
+
+5 Nov 2017
+    use IconMouseEvent to extract place data from a clicked place
+    (not too sure about getting the icon though)
+    oh no, claiming the console just multiplies the onEnter event listeners,
+    it's a fork bomb but crappier
+
+6 Nov 2017
+    SUBROUTINES!
+    by the way, console.error is cool cause you get the function traceback

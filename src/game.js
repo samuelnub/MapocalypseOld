@@ -3,6 +3,8 @@ const GameMap = require("./game-map");
 const GameConsole = require("./game-console");
 const GameData = require("./game-data");
 
+const Tests = require("./tests");
+
 exports.Game = Game;
 
 function Game() {
@@ -13,6 +15,8 @@ function Game() {
     this.gameConsole = new GameConsole.GameConsole(this); // should be setup first
     this.gameMap = new GameMap.GameMap(this);
     this.gameData = new GameData.GameData(this);
+
+    this.tests = new Tests.Tests(this);
 
     this.setupCommands();
 }

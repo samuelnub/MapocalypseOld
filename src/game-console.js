@@ -11,6 +11,7 @@ function GameConsole(game) {
     */
     this.eventsElement = document.createElement("div"); // ghost element, oooo
     this.eventsElement.commandListeners = {}; // key: command string, value: documentation
+    this.subroutineIds = []; // array of uuid strings, if it's empty, the console is not claimed
 
 	const consoleDiv = document.createElement("div");
 	consoleDiv.id = "console";
@@ -32,12 +33,16 @@ function GameConsole(game) {
     this.textAreaInputDiv = document.createElement("input");
     this.textAreaInputDiv.id = "console-text-area-input";
     this.textAreaInputDiv.type = "text";
-    this.textAreaInputDiv.addEventListener("keyup", (e) => {
-        e.preventDefault();
-        if(e.keyCode === 13) {
-            this.readLine();
+
+    this.onEnter(function() {
+        if(this.subroutineIds.length === 0) {
+            const line = this.readLine();
+            const inputs = line.split(" ");
+            const command = inputs[0];
+            const args = inputs.splice(1, inputs.length-1);
+            this.executeCommand(command, args);
         }
-    });
+    }.bind(this), true);
     this.textAreaDiv.appendChild(this.textAreaInputDiv);
 
     this.setuDefaultCommands();
@@ -63,20 +68,52 @@ GameConsole.prototype.writeLine = function(line, doNotSanitize, callback) {
     }
 }
 
-GameConsole.prototype.readLine = function() {
+GameConsole.prototype.readLine = function(doNotClear) {
     /*
-    Processes input and emits an event of the command
-    (either some class is going to pick it up, or nothing's gonna happen)
+    doNotClear = boolean
+
+    returns line = string
     */
-    const inputs = helpers.sanitizeInput(this.textAreaInputDiv.value).split(" ");
-    const command = inputs[0];
-    const args = inputs.splice(1, inputs.length-1);
-    this.executeCommand(command, args);
-    this.textAreaInputDiv.value = "";
+    const line = helpers.sanitizeInput(this.textAreaInputDiv.value);
+    if(!doNotClear) {
+        this.textAreaInputDiv.value = "";
+    }
+    return line;
+}
+
+GameConsole.prototype.onEnter = function(callback, dontRemoveEventListener) {
+    /*
+    When user presses enter, what do you wanna do? (mostly for subroutines)
+
+    callback function:
+        -no arguments (but you may want to read line within your callback, i assume)
+    
+    dontRemoveEventListener = boolean (probably dont configure this externally)
+    */
+    const callCallback = function(e) {
+        e.preventDefault();
+        if (e.keyCode === 13 && typeof callback === "function") {
+            setTimeout(function () {
+                callback();
+            }.bind(this), 0);
+            if(dontRemoveEventListener) {
+               return; 
+            }
+            else {
+                this.textAreaInputDiv.removeEventListener("keyup", callCallbackBound, true);
+            }
+        }
+    }
+    const callCallbackBound = callCallback.bind(this);
+    this.textAreaInputDiv.addEventListener("keyup", callCallbackBound, true);
+    //TODO: broken af
 }
 
 GameConsole.prototype.executeCommand = function(command, args) {
     /*
+    emits an event of the command
+    (either some class is going to pick it up, or nothing's gonna happen)
+
     command = string
 
     args = array of strings
@@ -95,6 +132,30 @@ GameConsole.prototype.addCommandListener = function(documentation) {
             documentation.callback(e.detail.args);
         }
     }.bind(this));
+}
+
+GameConsole.prototype.startSubroutine = function(subroutine) {
+    /*
+    If you want to use the console's input for multiple lines in your subroutine
+    Remember to endSubroutine() afterwards!
+
+    subroutine function:
+        subroutineId = string (uuid)
+    */
+    if(typeof subroutine === "function") {
+        let uuid = helpers.uuid();
+        this.subroutineIds.push(uuid);
+        setTimeout(function() {
+            subroutine(uuid);
+        }.bind(this), 0);
+    }
+}
+
+GameConsole.prototype.endSubroutine = function(subroutineId) {
+    /*
+    When your subroutine's done, remember to call this
+    */
+    this.subroutineIds.splice(this.subroutineIds.indexOf(subroutineId), 1);
 }
 
 GameConsole.prototype.setuDefaultCommands = function() {
@@ -169,8 +230,8 @@ function Documentation(command, args, description, callback) {
         args = array of strings
     */
     const self = this;
-    self.command = command;
-    self.args = args;
-    self.description = description;
-    self.callback = callback;
+    self.command = command || "unimplemented";
+    self.args = args || [""];
+    self.description = description || "Generic description (ask Sam to fill this up, damnit)";
+    self.callback = callback || function() { console.log("Unimplemented documentation of " + self.command); };
 }
