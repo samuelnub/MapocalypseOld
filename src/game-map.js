@@ -11,7 +11,7 @@ function GameMap(game) {
     this.mapDiv = document.createElement("div");
     this.mapDiv.id = "map";
     const mapocalypseMapStyle = new google.maps.StyledMapType(
-        require("../resource/map-style.json"), {name: "Mapocalypse Style"});
+        require("../res/map-style").mapStyle, {name: "Mapocalypse Style"});
     this.map = new google.maps.Map(this.mapDiv, {
         center: new google.maps.LatLng(53.551458, -1.923063),
         zoom: 10,

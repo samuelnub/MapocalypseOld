@@ -20,3 +20,11 @@
 6 Nov 2017
     SUBROUTINES!
     by the way, console.error is cool cause you get the function traceback
+    FYI https://developers.google.com/places/supported_types for place types
+    ayy, calculating the distance of long and latitudes:
+    https://www.movable-type.co.uk/scripts/latlong.html
+    places rate limits are per session!! that may be a good thing
+
+7 Nov 2017
+    localisation
+    

@@ -1,3 +1,4 @@
+const locale = require("../res/localisation").locale;
 const helpers = require("./helpers");
 const GameConsole = require("./game-console");
 
@@ -14,9 +15,7 @@ function GameData(game) {
     this.game = game;
 
     this.savedata = {
-        seed: null, // number
-        exploredPlaces: {}, // key: place ID, value: the place's modified stats
-        entities: [] // objects of entity's stats
+        checkNumber: 123456789
     };
 
     this.setupCommands();
@@ -24,9 +23,9 @@ function GameData(game) {
 
 GameData.prototype.setupCommands = function() {
     const loadCommand = new GameConsole.Documentation(
-        "load",
-        ["savedata"],
-        "Loads savedata and gets rid of the current game. Risky biz.",
+        locale.gameData.docLoadCmd,
+        locale.gameData.docLoadArgs,
+        locale.gameData.docLoadDesc,
         function(args) {
             const savedata = args[0];
             this.load(savedata);
@@ -41,12 +40,12 @@ GameData.prototype.setupCommands = function() {
         function(args) {
             this.save(function(savedata) {
                 let outputLine = [
-                    "Here's your savedata. Keep it a local text file or something:",
+                    locale.gameData.saveCommandHereYouGo,
                     savedata
                 ].join("<br>");
                 this.game.gameConsole.writeLine(outputLine, true, function(element) {
                     element.innerHTML += "<br>";
-                    let copyButton = helpers.createButton("Copy", function(button) {
+                    let copyButton = helpers.createButton(locale.gameData.saveCommandCopyButton, function(button) {
                         helpers.copyToClipboard(savedata);
                     });
                     element.appendChild(copyButton);
@@ -68,20 +67,17 @@ GameData.prototype.load = function(savedata) {
             let compressed = JSON.parse(savedata); // now it's an array of numbers
             let loadedData = JSON.parse(this.decompress(compressed));
             
-            //compare the keys of the loaded one and the default one
-            let ogKeys = Object.keys(this.savedata).sort();
-            let loadedKeys = Object.keys(loadedData).sort();
-            if(JSON.stringify(ogKeys) === JSON.stringify(loadedKeys)) {
+            if("checkNumber" in loadedData && loadedData.checkNumber === this.savedata.checkNumber) {
                 this.savedata = Object.assign({}, loadedData);
-                this.game.gameConsole.writeLine("Just loaded your save successfully!");
+                this.game.gameConsole.writeLine(locale.gameData.loadCommandSuccessful);
             }
             else {
-                throw "Aw man, the keys don't match";
+                throw "Something didn't quite match up when loading the savedata";
             }
 
         } 
         catch(e) {
-            this.game.gameConsole.writeLine("Couldn't load savedata!");
+            this.game.gameConsole.writeLine(locale.gameData.loadCommandFailed);
         }
     }.bind(this), 0);
 }

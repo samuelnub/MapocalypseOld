@@ -1,3 +1,4 @@
+const locale = require("../res/localisation").locale;
 const helpers = require("./helpers");
 const GameMap = require("./game-map");
 const GameConsole = require("./game-console");
@@ -23,23 +24,15 @@ function Game() {
 
 Game.prototype.setupCommands = function() {
     const startCommand = new GameConsole.Documentation(
-        "start",
-        ["new | save", "new: easy/normal/hard | save: savedata"],
-        "Either starts a new game, or loads a savefile that you provide.",
+        locale.game.docStartCmd,
+        locale.game.docStartArgs,
+        locale.game.docStartDesc,
         function(args) {
             if(args.length === 0) {
-                this.gameConsole.writeLine("Do you want a [new] game or one from a [save] data?");
+                this.gameConsole.writeLine(locale.game.startCommandNoArgs);
             }
             else if(args[0] === "new") {
-                if(args[1] === "easy") {
-                    this.startNewGame(0);
-                }
-                else if(args[1] === "normal") {
-                    this.startNewGame(1);
-                }
-                else if(args[1] === "hard") {
-                    this.startNewGame(2);
-                }
+                
             }
             else if(args[0] === "save") {
                 this.startSaveGame(args[1]);
@@ -47,13 +40,6 @@ Game.prototype.setupCommands = function() {
         }.bind(this)
     );
     this.gameConsole.addCommandListener(startCommand);
-}
-
-Game.prototype.startNewGame = function (difficulty) {
-    /*
-    difficulty = integer (easy = 0/normal = 1/hard = 2)
-    */
-    this.gameConsole.writeLine("You chose the difficulty setting of: " + difficulty);
 }
 
 Game.prototype.startSaveGame = function(savedata) {

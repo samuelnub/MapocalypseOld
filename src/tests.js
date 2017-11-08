@@ -4,9 +4,13 @@ exports.Tests = Tests;
 function Tests(game) {
     /*
     Just for testing purposes
+    (not localised: too lazy :( )
 
     game = Game instance
     */
+    if(!require("../res/config").config.debug) {
+        return;
+    }
     let inp1, inp2;
     game.gameConsole.addCommandListener(new GameConsole.Documentation(
         "test",
@@ -26,6 +30,23 @@ function Tests(game) {
                         console.log(inp1 + " and " + inp2);
                     }.bind(this));
                 }.bind(this));
+            }.bind(this));
+        }.bind(this)
+    ));
+
+    game.gameConsole.addCommandListener(new GameConsole.Documentation(
+        "hacker",
+        ["characters"],
+        "Be a sweet hacker",
+        function(args) {
+            game.gameConsole.writeLine("", false, function(lineP) {
+                for(let i = 0; i < parseInt(args[0]); i++) {
+                    setTimeout(function() {
+                        lineP.innerHTML += (Math.random() < 0.5 ? "0" : "1");
+                        lineP.innerHTML += (Math.random() < 0.5 ? "" : " ");
+                        lineP.innerHTML += (Math.random() < 0.0001 ? "segfault" : "");
+                    }.bind(this), i+10);
+                }
             }.bind(this));
         }.bind(this)
     ));

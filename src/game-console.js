@@ -1,16 +1,18 @@
 const helpers = require("./helpers");
+const locale = require("../res/localisation").locale;
 
 exports.GameConsole = GameConsole;
 exports.Documentation = Documentation;
 
 function GameConsole(game) {
     /*
-    Handles commands and stuff
+    Handles commands and general event dispatching
 
     game = Game instance
     */
-    this.eventsElement = document.createElement("div"); // ghost element, oooo
-    this.eventsElement.commandListeners = {}; // key: command string, value: documentation
+    this.commandsElement = document.createElement("div"); // ghost element, oooo
+    this.commandsElement.commandListeners = {}; // key: command string, value: documentation
+    this.eventsElement = document.createElement("div"); // internal -non console accessible commands essentially
     this.subroutineIds = []; // array of uuid strings, if it's empty, the console is not claimed
 
 	const consoleDiv = document.createElement("div");
@@ -37,6 +39,9 @@ function GameConsole(game) {
     this.onEnter(function() {
         if(this.subroutineIds.length === 0) {
             const line = this.readLine();
+            if(line === "") {
+                return;
+            }
             const inputs = line.split(" ");
             const command = inputs[0];
             const args = inputs.splice(1, inputs.length-1);
@@ -111,6 +116,7 @@ GameConsole.prototype.onEnter = function(callback, dontRemoveEventListener) {
 
 GameConsole.prototype.executeCommand = function(command, args) {
     /*
+    A command is something the user can execute via the console
     emits an event of the command
     (either some class is going to pick it up, or nothing's gonna happen)
 
@@ -119,19 +125,51 @@ GameConsole.prototype.executeCommand = function(command, args) {
     args = array of strings
     */
     const event = new CustomEvent(command, { detail: { args: args}});
+    this.commandsElement.dispatchEvent(event);
+    if(!(command in this.commandsElement.commandListeners) && this.subroutineIds.length === 0) {
+        this.writeLine(locale.gameConsole.unrecognisedCommand);
+    }
+}
+
+GameConsole.prototype.executeEvent = function(eventName, items) {
+    /*
+    Pretty much an event emitter like the executeCommand, but not a command
+    that can be listed from the console (internal broadcasts)
+
+    event = string
+
+    items object
+        anything that you want the picker-uppers to get
+    */
+    const event = new CustomEvent(eventName, { detail: { items: items || {}}});
     this.eventsElement.dispatchEvent(event);
+    console.log(eventName + " has just been emitted as an event");
 }
 
 GameConsole.prototype.addCommandListener = function(documentation) {
     /*
     documentation = Documentation instance
     */
-    this.eventsElement.commandListeners[documentation.command] = documentation;
-    this.eventsElement.addEventListener(documentation.command, function(e) {
+    this.commandsElement.commandListeners[documentation.command] = documentation;
+    this.commandsElement.addEventListener(documentation.command, function(e) {
         if(typeof documentation.callback === "function") {
             documentation.callback(e.detail.args);
         }
     }.bind(this));
+}
+
+GameConsole.prototype.addEventListener = function(eventName, callback) {
+    /*
+    since it's internal, you dont need any documentation that the user needs
+    to see
+
+    callback function:
+        items object:
+            just items passed by the emitter
+    */
+    if(typeof callback === "function") {
+        this.eventsElement.addEventListener(eventName, callback);
+    }
 }
 
 GameConsole.prototype.startSubroutine = function(subroutine) {
@@ -160,47 +198,38 @@ GameConsole.prototype.endSubroutine = function(subroutineId) {
 
 GameConsole.prototype.setuDefaultCommands = function() {
     const introCommand = new Documentation(
-        "intro",
-        [""],
-        "Introduces you to the game, yet again!",
+        locale.gameConsole.docIntroCmd,
+        locale.gameConsole.docIntroArgs,
+        locale.gameConsole.docIntroDesc,
         function(args) {
-            const output = [
-                "Welcome to the Mapocalypse, you lonely creature!",
-                "Type 'start new' to begin a new adventure,",
-                "or alternatively, 'start save [your savedata]' to",
-                "hopefully resume your journey!",
-                "If you neeed help, just type 'help' and some underpaid",
-                "civil service workers will come to your assistance!",
-                "Good luck, buddy."
-            ].join("<br>");
-            this.writeLine(output, true);
+            this.writeLine(locale.gameConsole.intro, true);
         }.bind(this)
     );
     this.addCommandListener(introCommand);
     this.executeCommand(introCommand.command);
 
     const helpCommand = new Documentation(
-        "help",
-        ["command"],
-        "Provides help for a particular command",
+        locale.gameConsole.docHelpCmd,
+        locale.gameConsole.docHelpArgs,
+        locale.gameConsole.docHelpDesc,
         function(args) {
-            if(args[0] in this.eventsElement.commandListeners) {
-                let commandDocumentation = this.eventsElement.commandListeners[args[0]];
-                let output = "Help regarding the " + commandDocumentation.command + " command:<br>";
+            if(args[0] in this.commandsElement.commandListeners) {
+                let commandDocumentation = this.commandsElement.commandListeners[args[0]];
+                let output = locale.gameConsole.helpHelpFor + commandDocumentation.command + "<br>";
                 output += "'" + commandDocumentation.description + "'<br>";
-                output += "Syntax: " + commandDocumentation.command + " " + helpers.sanitizeInput(commandDocumentation.args);
+                output += locale.gameConsole.helpSyntax + commandDocumentation.command + " " + helpers.sanitizeInput(commandDocumentation.args);
                 this.writeLine(output, true);
             }
             else {
                 if(args.length === 0) {
-                    let output = "You can ask for help regarding:<br>";
-                    for(const key of Object.keys(this.eventsElement.commandListeners)) {
+                    let output = locale.gameConsole.youCanAskForHelpFor;
+                    for(const key of Object.keys(this.commandsElement.commandListeners)) {
                         output += "'" + key + "' ";
                     }
                     this.writeLine(output, true);
                 }
                 else {
-                    this.writeLine("Sorry! That command doesn't exist!");
+                    this.writeLine(locale.gameConsole.unrecognisedCommand);
                 }
             }
         }.bind(this)
@@ -208,11 +237,11 @@ GameConsole.prototype.setuDefaultCommands = function() {
     this.addCommandListener(helpCommand);
 
     const sayCommand = new Documentation(
-        "say",
-        ["message"],
-        "Print something out into the console",
+        locale.gameConsole.docSayCmd,
+        locale.gameConsole.docSayArgs,
+        locale.gameConsole.docSayDesc,
         function(args) {
-            this.writeLine("[You] " + args.join(" "));
+            this.writeLine(locale.gameConsole.sayCommandYou + args.join(" "));
         }.bind(this)
     );
     this.addCommandListener(sayCommand);
@@ -230,8 +259,8 @@ function Documentation(command, args, description, callback) {
         args = array of strings
     */
     const self = this;
-    self.command = command || "unimplemented";
-    self.args = args || [""];
-    self.description = description || "Generic description (ask Sam to fill this up, damnit)";
+    self.command = command || locale.gameConsole.docUnimplementedCmd;
+    self.args = args || locale.gameConsole.docUnimplementedArgs;
+    self.description = description || locale.gameConsole.docUnimplementedDesc;
     self.callback = callback || function() { console.log("Unimplemented documentation of " + self.command); };
 }
