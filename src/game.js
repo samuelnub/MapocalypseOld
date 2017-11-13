@@ -31,17 +31,18 @@ Game.prototype.setupCommands = function() {
             if(args.length === 0) {
                 this.gameConsole.writeLine(locale.game.startCommandNoArgs);
             }
-            else if(args[0] === "new") {
-                
+            else if(args[0] === locale.game.startCommandNewArg) {
+                (function startNewGame() {
+                    this.gameConsole.startSubroutine();
+
+                    
+                })(this);
             }
-            else if(args[0] === "save") {
-                this.startSaveGame(args[1]);
+            else if(args[0] === locale.game.startCommandSaveArg) {
+                this.gameData.load(args[1]);
+                this.gameConsole.executeEvent(GameConsole.events.game.gameStart); // no items passed - assume that other classes will read off of savedata in gamedata
             }
         }.bind(this)
     );
     this.gameConsole.addCommandListener(startCommand);
-}
-
-Game.prototype.startSaveGame = function(savedata) {
-    this.gameData.load(savedata);
 }

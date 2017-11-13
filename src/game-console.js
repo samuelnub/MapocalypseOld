@@ -1,8 +1,26 @@
-const helpers = require("./helpers");
 const locale = require("../res/localisation").locale;
+const helpers = require("./helpers");
 
 exports.GameConsole = GameConsole;
 exports.Documentation = Documentation;
+exports.events = {
+    /*
+    Houses eventnames that can/will be executed along the way by some function
+    Commands doesnt need one of 
+    these lists cause the commandsElement.commandListeners 
+    has them all already
+
+    syntax:
+    events: object
+        class (camelCase): object
+            eventName: string (uuid)
+            ...
+        ...
+    */
+    game: {
+        gameStart: helpers.uuid() // this makes the other classes read from the savedata of gamedata
+    }
+};
 
 function GameConsole(game) {
     /*
@@ -42,6 +60,10 @@ function GameConsole(game) {
             if(line === "") {
                 return;
             }
+            else if(line === locale.gameConsole.exitSubroutineCommand) {
+                this.subroutineIds.splice(0, this.subroutineIds.length);
+                return;
+            } // TODO: implement properly
             const inputs = line.split(" ");
             const command = inputs[0];
             const args = inputs.splice(1, inputs.length-1);

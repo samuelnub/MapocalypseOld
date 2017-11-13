@@ -4,6 +4,28 @@ const config = {
 };
 exports.config = config;
 },{}],2:[function(require,module,exports){
+const helpers = require("../src/helpers");
+
+const events = {
+    /*
+    Houses eventnames that can/will be executed along the way by some function
+    Commands doesnt need one of 
+    these lists cause the commandsElement.commandListeners 
+    has them all already
+
+    syntax:
+    events: object
+        class (camelCase): object
+            eventName: string (uuid)
+            ...
+        ...
+    */
+    game: {
+        gameStart: helpers.uuid() // this makes the other classes read from the savedata of gamedata
+    }
+};
+exports.events = events;
+},{"../src/helpers":9}],3:[function(require,module,exports){
 const locale = {
     /*
     Strings for every string that appears in the game/webpage (except the warning lmao)
@@ -30,6 +52,7 @@ const locale = {
         docUnimplementedCmd: "unimplemented",
         docUnimplementedArgs: [""],
         docUnimplementedDesc: "An unimplemented command - tell Sam that he needs to work harder!",
+        exitSubroutineCommand: "exit",
         unrecognisedCommand: "Sorry, that wasn't a recognised command! Try 'help' for a list of them!",
         intro: [
             "Welcome to the Mapocalypse, you lonely creature!",
@@ -64,11 +87,13 @@ const locale = {
         docStartCmd: "start",
         docStartArgs: ["new | save", "save: savedata"],
         docStartDesc: "Either starts a new game, or loads a savefile that you provide.",
-        startCommandNoArgs: "Do you want a [new] game or one from a previous [save]?"
+        startCommandNoArgs: "Do you want a [new] game or one from a previous [save]?",
+        startCommandNewArg: "new",
+        startCommandSaveArg: "save"
     }
 };
 exports.locale = locale;
-},{}],3:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 const mapStyle = [
     {
         "elementType": "geometry",
@@ -288,9 +313,9 @@ const mapStyle = [
     }
 ];
 exports.mapStyle = mapStyle;
-},{}],4:[function(require,module,exports){
-const helpers = require("./helpers");
+},{}],5:[function(require,module,exports){
 const locale = require("../res/localisation").locale;
+const helpers = require("./helpers");
 
 exports.GameConsole = GameConsole;
 exports.Documentation = Documentation;
@@ -331,6 +356,10 @@ function GameConsole(game) {
         if(this.subroutineIds.length === 0) {
             const line = this.readLine();
             if(line === "") {
+                return;
+            }
+            else if(line === locale.gameConsole.exitSubroutineCommand) {
+                this.subroutineIds.splice(0, this.subroutineIds.length);
                 return;
             }
             const inputs = line.split(" ");
@@ -555,7 +584,7 @@ function Documentation(command, args, description, callback) {
     self.description = description || locale.gameConsole.docUnimplementedDesc;
     self.callback = callback || function() { console.log("Unimplemented documentation of " + self.command); };
 }
-},{"../res/localisation":2,"./helpers":8}],5:[function(require,module,exports){
+},{"../res/localisation":3,"./helpers":9}],6:[function(require,module,exports){
 const locale = require("../res/localisation").locale;
 const helpers = require("./helpers");
 const GameConsole = require("./game-console");
@@ -730,7 +759,7 @@ GameData.prototype.decompress = function(compressed) {
     }
     return result;
 }
-},{"../res/localisation":2,"./game-console":4,"./helpers":8}],6:[function(require,module,exports){
+},{"../res/localisation":3,"./game-console":5,"./helpers":9}],7:[function(require,module,exports){
 
 
 exports.GameMap = GameMap;
@@ -761,8 +790,9 @@ function GameMap(game) {
 }
 
 
-},{"../res/map-style":3}],7:[function(require,module,exports){
+},{"../res/map-style":4}],8:[function(require,module,exports){
 const locale = require("../res/localisation").locale;
+const eventsList = require("../res/events-list").events;
 const helpers = require("./helpers");
 const GameMap = require("./game-map");
 const GameConsole = require("./game-console");
@@ -795,21 +825,22 @@ Game.prototype.setupCommands = function() {
             if(args.length === 0) {
                 this.gameConsole.writeLine(locale.game.startCommandNoArgs);
             }
-            else if(args[0] === "new") {
-                
+            else if(args[0] === locale.game.startCommandNewArg) {
+                (function startNewGame() {
+                    this.gameConsole.startSubroutine();
+
+                    
+                })(this);
             }
-            else if(args[0] === "save") {
-                this.startSaveGame(args[1]);
+            else if(args[0] === locale.game.startCommandSaveArg) {
+                this.gameData.load(args[1]);
+                this.gameConsole.executeEvent(eventsList.game.gameStart); // no items passed - assume that other classes will read off of savedata in gamedata
             }
         }.bind(this)
     );
     this.gameConsole.addCommandListener(startCommand);
 }
-
-Game.prototype.startSaveGame = function(savedata) {
-    this.gameData.load(savedata);
-}
-},{"../res/localisation":2,"./game-console":4,"./game-data":5,"./game-map":6,"./helpers":8,"./tests":10}],8:[function(require,module,exports){
+},{"../res/events-list":2,"../res/localisation":3,"./game-console":5,"./game-data":6,"./game-map":7,"./helpers":9,"./tests":11}],9:[function(require,module,exports){
 
 exports.draggableElement = draggableElement;
 function draggableElement(elmnt) {
@@ -955,7 +986,7 @@ function copyToClipboard(text) {
   
     document.body.removeChild(textArea);
   }
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 const Game = require("./game");
 
 window.onload = init;
@@ -967,7 +998,7 @@ function init() {
 }
 
 
-},{"../res/config":1,"./game":7}],10:[function(require,module,exports){
+},{"../res/config":1,"./game":8}],11:[function(require,module,exports){
 const GameConsole = require("./game-console");
 
 exports.Tests = Tests;
@@ -1021,4 +1052,4 @@ function Tests(game) {
         }.bind(this)
     ));
 }
-},{"../res/config":1,"./game-console":4}]},{},[9]);
+},{"../res/config":1,"./game-console":5}]},{},[10]);

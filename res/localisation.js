@@ -24,6 +24,7 @@ const locale = {
         docUnimplementedCmd: "unimplemented",
         docUnimplementedArgs: [""],
         docUnimplementedDesc: "An unimplemented command - tell Sam that he needs to work harder!",
+        exitSubroutineCommand: "exit",
         unrecognisedCommand: "Sorry, that wasn't a recognised command! Try 'help' for a list of them!",
         intro: [
             "Welcome to the Mapocalypse, you lonely creature!",
@@ -58,7 +59,9 @@ const locale = {
         docStartCmd: "start",
         docStartArgs: ["new | save", "save: savedata"],
         docStartDesc: "Either starts a new game, or loads a savefile that you provide.",
-        startCommandNoArgs: "Do you want a [new] game or one from a previous [save]?"
+        startCommandNoArgs: "Do you want a [new] game or one from a previous [save]?",
+        startCommandNewArg: "new",
+        startCommandSaveArg: "save"
     }
 };
 exports.locale = locale;

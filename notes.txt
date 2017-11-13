@@ -28,3 +28,5 @@
 7 Nov 2017
     localisation
     
+13 Nov 2017
+    entities/entity/player class start, also more work into gamemap class

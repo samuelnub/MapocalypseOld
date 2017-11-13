@@ -1,13 +1,15 @@
-
+const GameConsole = require("./game-console");
 
 exports.GameMap = GameMap;
 
 function GameMap(game) {
     /*
-    Container and manager of the google maps object
+    Container of the google maps object, and also map-stuff like 
 
     game = Game instance
     */
+    this.game = game;
+
     this.mapDiv = document.createElement("div");
     this.mapDiv.id = "map";
     const mapocalypseMapStyle = new google.maps.StyledMapType(
@@ -25,5 +27,16 @@ function GameMap(game) {
     this.map.setMapTypeId("mapocalypse_style");
 
     game.mainDiv.appendChild(this.mapDiv);
+
+    game.gameConsole.addEventListener(GameConsole.events.game.gameStart, this.onGameStart.bind(this));
 }
 
+GameMap.prototype.onGameStart = function() {
+    console.log("Game starting! the map has heard that");
+}
+
+GameMap.prototype.addMarker = function(latLng, icon) {
+    let marker = new google.maps.Marker({
+        
+    });
+}
