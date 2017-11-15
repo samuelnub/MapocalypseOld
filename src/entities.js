@@ -1,4 +1,6 @@
-
+const helpers = require("./helpers");
+const Player = require("./player");
+const GameConsole = require("./game-console");
 
 exports.Entities = Entities;
 exports.Entity = Entity;
@@ -10,10 +12,15 @@ function Entities(game) {
     */
     this.game = game;
     this.entityList = []; // may use a quadnode in the future
+
+    this.player = null;
+
+    this.game.gameConsole.addEventListener(GameConsole.events.game.gameStart, this.onGameStart.bind(this));
 }
 
 Entities.prototype.onGameStart = function() {
     // clear all entities to start afresh
+    this.player = new Player.Player(this.game);
 }
 
 Entities.prototype.create = function(params) {
@@ -43,8 +50,9 @@ function Entity(params) {
         effects: []
     */
     this.game = params.game;
-    this.mapMarker = game.gameMap.addMarker(latLng, icon);
-    
+    this.mapMarker = this.game.gameMap.addMarker(params.position || {lat: 0, lng: 0}, params.icon);
+
+    this.id = params.id || helpers.uuid();
     this.health = params.health || 1.0;
     this.blood = params.blood || 1.0;
     this.stamina = params.stamina || 1.0;
@@ -55,10 +63,14 @@ function Entity(params) {
     this.temperature = params.temperature || 0.5;
     this.inventory = params.inventory || [];
     this.effects = params.effects || [];
+
+    console.log("I am a new entity! with id " + this.id);
 }
 
 Entity.prototype.move = function(latLng) {
     /*
     Will move based on stamina/alertness etc
+    will only act upon the marker's position. nowhere else contains the entity's pos
     */
+    
 }

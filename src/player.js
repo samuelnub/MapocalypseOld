@@ -9,11 +9,10 @@ function Player(game) {
     */
     this.game = game;
 
-    this.entity = null;
+    this.entity = this.game.entities.create({});
 
-    this.game.gameConsole.addEventListener(GameConsole.events.game.gameStart, this.onGameStart.bind(this));
-}
-
-Player.prototype.onGameStart = function() {
-    console.log("Game starting! the player has heard that");
+    // test
+    this.game.gameMap.onClick(function(e){
+        this.game.gameMap.addMarker(e.latLng, "enemy");
+    }.bind(this));
 }

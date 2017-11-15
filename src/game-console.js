@@ -37,7 +37,7 @@ function GameConsole(game) {
 	consoleDiv.id = "console";
 	const consoleHeaderDiv = document.createElement("div");
 	consoleHeaderDiv.id = "console-header";
-	consoleHeaderDiv.innerHTML = "Console";
+	consoleHeaderDiv.innerHTML = locale.general.console;
 	consoleDiv.appendChild(consoleHeaderDiv);
 	game.mainDiv.appendChild(consoleDiv);
     helpers.draggableElement(consoleDiv);

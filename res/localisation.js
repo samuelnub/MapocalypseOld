@@ -25,16 +25,18 @@ const locale = {
         docUnimplementedArgs: [""],
         docUnimplementedDesc: "An unimplemented command - tell Sam that he needs to work harder!",
         exitSubroutineCommand: "exit",
-        unrecognisedCommand: "Sorry, that wasn't a recognised command! Try 'help' for a list of them!",
-        intro: [
-            "Welcome to the Mapocalypse, you lonely creature!",
-            "Type 'start new' to begin a new adventure,",
-            "or alternatively, 'start save [your savedata]' to",
-            "hopefully resume your journey!",
-            "If you neeed help, just type 'help' and some underpaid",
-            "civil service workers will come to your assistance!",
-            "Good luck, buddy."
-        ].join("<br>"),
+        get unrecognisedCommand() {
+            return "Sorry, that wasn't a recognised command! Try '" + locale.gameConsole.docHelpCmd + "' for a list of them!";
+        },
+        get intro() {
+            return [
+                "Welcome to the Mapocalypse, you lonely creature!",
+                "Type '" + locale.game.docStartCmd + "' to begin a new journey (or resume one)",
+                "If you neeed help, just type '" + locale.gameConsole.docHelpCmd + "',",
+                "and some underpaid civil service workers will come to your assistance!",
+                "Good luck, buddy."
+            ].join("<br>");
+        },
         helpHelpFor: "Help for ",
         helpSyntax: "Syntax: ",
         youCanAskForHelpFor: "You can as for help regarding:<br>",
@@ -59,9 +61,15 @@ const locale = {
         docStartCmd: "start",
         docStartArgs: ["new | save", "save: savedata"],
         docStartDesc: "Either starts a new game, or loads a savefile that you provide.",
-        startCommandNoArgs: "Do you want a [new] game or one from a previous [save]?",
+        get startCommandNoArgs() {
+            return "Do you want a [" + locale.game.startCommandNewArg + "] game or one from a previous [" + locale.game.startCommandSaveArg + "]?";
+        },
         startCommandNewArg: "new",
         startCommandSaveArg: "save"
+    },
+    general: {
+        console: "Console",
+        copy: "Copy"
     }
 };
 exports.locale = locale;

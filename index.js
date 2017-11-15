@@ -4,28 +4,6 @@ const config = {
 };
 exports.config = config;
 },{}],2:[function(require,module,exports){
-const helpers = require("../src/helpers");
-
-const events = {
-    /*
-    Houses eventnames that can/will be executed along the way by some function
-    Commands doesnt need one of 
-    these lists cause the commandsElement.commandListeners 
-    has them all already
-
-    syntax:
-    events: object
-        class (camelCase): object
-            eventName: string (uuid)
-            ...
-        ...
-    */
-    game: {
-        gameStart: helpers.uuid() // this makes the other classes read from the savedata of gamedata
-    }
-};
-exports.events = events;
-},{"../src/helpers":9}],3:[function(require,module,exports){
 const locale = {
     /*
     Strings for every string that appears in the game/webpage (except the warning lmao)
@@ -53,16 +31,18 @@ const locale = {
         docUnimplementedArgs: [""],
         docUnimplementedDesc: "An unimplemented command - tell Sam that he needs to work harder!",
         exitSubroutineCommand: "exit",
-        unrecognisedCommand: "Sorry, that wasn't a recognised command! Try 'help' for a list of them!",
-        intro: [
-            "Welcome to the Mapocalypse, you lonely creature!",
-            "Type 'start new' to begin a new adventure,",
-            "or alternatively, 'start save [your savedata]' to",
-            "hopefully resume your journey!",
-            "If you neeed help, just type 'help' and some underpaid",
-            "civil service workers will come to your assistance!",
-            "Good luck, buddy."
-        ].join("<br>"),
+        get unrecognisedCommand() {
+            return "Sorry, that wasn't a recognised command! Try '" + locale.gameConsole.docHelpCmd + "' for a list of them!";
+        },
+        get intro() {
+            return [
+                "Welcome to the Mapocalypse, you lonely creature!",
+                "Type '" + locale.game.docStartCmd + "' to begin a new journey (or resume one)",
+                "If you neeed help, just type '" + locale.gameConsole.docHelpCmd + "',",
+                "and some underpaid civil service workers will come to your assistance!",
+                "Good luck, buddy."
+            ].join("<br>");
+        },
         helpHelpFor: "Help for ",
         helpSyntax: "Syntax: ",
         youCanAskForHelpFor: "You can as for help regarding:<br>",
@@ -87,13 +67,19 @@ const locale = {
         docStartCmd: "start",
         docStartArgs: ["new | save", "save: savedata"],
         docStartDesc: "Either starts a new game, or loads a savefile that you provide.",
-        startCommandNoArgs: "Do you want a [new] game or one from a previous [save]?",
+        get startCommandNoArgs() {
+            return "Do you want a [" + locale.game.startCommandNewArg + "] game or one from a previous [" + locale.game.startCommandSaveArg + "]?";
+        },
         startCommandNewArg: "new",
         startCommandSaveArg: "save"
+    },
+    general: {
+        console: "Console",
+        copy: "Copy"
     }
 };
 exports.locale = locale;
-},{}],4:[function(require,module,exports){
+},{}],3:[function(require,module,exports){
 const mapStyle = [
     {
         "elementType": "geometry",
@@ -313,12 +299,105 @@ const mapStyle = [
     }
 ];
 exports.mapStyle = mapStyle;
-},{}],5:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
+const helpers = require("./helpers");
+const Player = require("./player");
+const GameConsole = require("./game-console");
+
+exports.Entities = Entities;
+exports.Entity = Entity;
+function Entities(game) {
+    /*
+    Manager for the base class for moving markers on the map, with stats like health etc
+    
+    game = Game instance
+    */
+    this.game = game;
+    this.entityList = []; // may use a quadnode in the future
+
+    this.player = null;
+
+    this.game.gameConsole.addEventListener(GameConsole.events.game.gameStart, this.onGameStart.bind(this));
+}
+
+Entities.prototype.onGameStart = function() {
+    // clear all entities to start afresh
+    this.player = new Player.Player(this.game);
+}
+
+Entities.prototype.create = function(params) {
+    params.game = this.game;
+    this.entityList.push(new Entity(params));
+}
+
+function Entity(params) {
+    /*
+    The player steps the game's time forward, and all other entities do their things
+    within that timeframe
+
+    params object:
+        game: Game instance (given automatically)
+        position: LatLng object (google maps),
+        icon: string (link to the icon image),
+
+        health: float,
+        blood: float,
+        stamina: float,
+        hunger: float,
+        thirst: float,
+        happiness: float,
+        alertness: float,
+        temperature: float
+        inventory: [],
+        effects: []
+    */
+    this.game = params.game;
+    this.mapMarker = this.game.gameMap.addMarker(params.position || {lat: 0, lng: 0}, params.icon);
+    
+    this.id = params.id || helpers.uuid();
+    this.health = params.health || 1.0;
+    this.blood = params.blood || 1.0;
+    this.stamina = params.stamina || 1.0;
+    this.hunger = params.hunger || 0.0;
+    this.thirst = params.thirst || 0.0;
+    this.happiness = params.happiness || 0.5;
+    this.alertness = params.alertness || 0.5;
+    this.temperature = params.temperature || 0.5;
+    this.inventory = params.inventory || [];
+    this.effects = params.effects || [];
+
+    console.log("I am a new entity! with id " + this.id);
+}
+
+Entity.prototype.move = function(latLng) {
+    /*
+    Will move based on stamina/alertness etc
+    */
+}
+},{"./game-console":5,"./helpers":9,"./player":11}],5:[function(require,module,exports){
 const locale = require("../res/localisation").locale;
 const helpers = require("./helpers");
 
 exports.GameConsole = GameConsole;
 exports.Documentation = Documentation;
+exports.events = {
+    /*
+    Houses eventnames that can/will be executed along the way by some function
+    Commands doesnt need one of 
+    these lists cause the commandsElement.commandListeners 
+    has them all already
+
+    syntax:
+    events: object
+        class (camelCase): object
+            eventName: string (uuid)
+            ...
+        ...
+    */
+    game: {
+        gameStart: helpers.uuid() // this makes the other classes read from the savedata of gamedata
+    }
+};
 
 function GameConsole(game) {
     /*
@@ -335,7 +414,7 @@ function GameConsole(game) {
 	consoleDiv.id = "console";
 	const consoleHeaderDiv = document.createElement("div");
 	consoleHeaderDiv.id = "console-header";
-	consoleHeaderDiv.innerHTML = "Console";
+	consoleHeaderDiv.innerHTML = locale.general.console;
 	consoleDiv.appendChild(consoleHeaderDiv);
 	game.mainDiv.appendChild(consoleDiv);
     helpers.draggableElement(consoleDiv);
@@ -361,7 +440,7 @@ function GameConsole(game) {
             else if(line === locale.gameConsole.exitSubroutineCommand) {
                 this.subroutineIds.splice(0, this.subroutineIds.length);
                 return;
-            }
+            } // TODO: implement properly
             const inputs = line.split(" ");
             const command = inputs[0];
             const args = inputs.splice(1, inputs.length-1);
@@ -584,7 +663,7 @@ function Documentation(command, args, description, callback) {
     self.description = description || locale.gameConsole.docUnimplementedDesc;
     self.callback = callback || function() { console.log("Unimplemented documentation of " + self.command); };
 }
-},{"../res/localisation":3,"./helpers":9}],6:[function(require,module,exports){
+},{"../res/localisation":2,"./helpers":9}],6:[function(require,module,exports){
 const locale = require("../res/localisation").locale;
 const helpers = require("./helpers");
 const GameConsole = require("./game-console");
@@ -632,7 +711,7 @@ GameData.prototype.setupCommands = function() {
                 ].join("<br>");
                 this.game.gameConsole.writeLine(outputLine, true, function(element) {
                     element.innerHTML += "<br>";
-                    let copyButton = helpers.createButton(locale.gameData.saveCommandCopyButton, function(button) {
+                    let copyButton = helpers.createButton(locale.general.copy, function(button) {
                         helpers.copyToClipboard(savedata);
                     });
                     element.appendChild(copyButton);
@@ -759,17 +838,21 @@ GameData.prototype.decompress = function(compressed) {
     }
     return result;
 }
-},{"../res/localisation":3,"./game-console":5,"./helpers":9}],7:[function(require,module,exports){
-
+},{"../res/localisation":2,"./game-console":5,"./helpers":9}],7:[function(require,module,exports){
+const GameConsole = require("./game-console");
 
 exports.GameMap = GameMap;
 
 function GameMap(game) {
     /*
-    Container and manager of the google maps object
+    Container of the google maps object, and also map-stuff like 
 
     game = Game instance
     */
+    this.game = game;
+
+    this.markers = [];
+
     this.mapDiv = document.createElement("div");
     this.mapDiv.id = "map";
     const mapocalypseMapStyle = new google.maps.StyledMapType(
@@ -787,16 +870,57 @@ function GameMap(game) {
     this.map.setMapTypeId("mapocalypse_style");
 
     game.mainDiv.appendChild(this.mapDiv);
+
+    game.gameConsole.addEventListener(GameConsole.events.game.gameStart, this.onGameStart.bind(this));
 }
 
+GameMap.prototype.onGameStart = function() {
+    console.log("Game starting! the map has heard that");
+    // test this.addMarker({lat: 0, lng: 0}, "enemy");
+}
 
-},{"../res/map-style":4}],8:[function(require,module,exports){
+GameMap.prototype.addMarker = function(latLng, icon) {
+    /*
+    returns a google maps marker object
+
+    latLng = LatLng object
+    icon = string (just the ../res/icon's name, without the file extension)
+    */
+    let marker = new google.maps.Marker({
+        position: latLng,
+        icon: {
+            url: "./res/icons/" + (icon ? icon : "player-unhappy") + ".svg"
+        },
+        map: this.map
+    });
+    this.markers.push(marker);
+    return marker;
+}
+
+GameMap.prototype.onClick = function(callback) {
+    /*
+    
+    callback function:
+        event = event object (has .latLng properties)
+    */
+    let eventListener;
+    const callCallback = function(e) {
+        if(typeof callback === "function") {
+            console.log("clickity click!");
+            callback(e);
+        }
+        //google.maps.event.removeListener(eventListener);
+    };
+    const callCallbackBound = callCallback.bind(this);
+    eventListener = google.maps.event.addListener(this.map, "click", callCallbackBound);
+}
+},{"../res/map-style":3,"./game-console":5}],8:[function(require,module,exports){
 const locale = require("../res/localisation").locale;
-const eventsList = require("../res/events-list").events;
 const helpers = require("./helpers");
 const GameMap = require("./game-map");
 const GameConsole = require("./game-console");
 const GameData = require("./game-data");
+const Entities = require("./entities");
 
 const Tests = require("./tests");
 
@@ -810,6 +934,7 @@ function Game() {
     this.gameConsole = new GameConsole.GameConsole(this); // should be setup first
     this.gameMap = new GameMap.GameMap(this);
     this.gameData = new GameData.GameData(this);
+    this.entities = new Entities.Entities(this);
 
     this.tests = new Tests.Tests(this);
 
@@ -827,20 +952,20 @@ Game.prototype.setupCommands = function() {
             }
             else if(args[0] === locale.game.startCommandNewArg) {
                 (function startNewGame() {
-                    this.gameConsole.startSubroutine();
+                    
 
                     
                 })(this);
             }
             else if(args[0] === locale.game.startCommandSaveArg) {
                 this.gameData.load(args[1]);
-                this.gameConsole.executeEvent(eventsList.game.gameStart); // no items passed - assume that other classes will read off of savedata in gamedata
+                this.gameConsole.executeEvent(GameConsole.events.game.gameStart); // no items passed - assume that other classes will read off of savedata in gamedata
             }
         }.bind(this)
     );
     this.gameConsole.addCommandListener(startCommand);
 }
-},{"../res/events-list":2,"../res/localisation":3,"./game-console":5,"./game-data":6,"./game-map":7,"./helpers":9,"./tests":11}],9:[function(require,module,exports){
+},{"../res/localisation":2,"./entities":4,"./game-console":5,"./game-data":6,"./game-map":7,"./helpers":9,"./tests":12}],9:[function(require,module,exports){
 
 exports.draggableElement = draggableElement;
 function draggableElement(elmnt) {
@@ -918,6 +1043,32 @@ function createButton(text, callback) {
         }
     });
     return butt;
+}
+
+exports.distBetweenLatLngKm = distBetweenLatLngKm;
+function distBetweenLatLngKm(latLng1, latLng2) {
+    // From https://stackoverflow.com/questions/27928/calculate-distance-between-two-latitude-longitude-points-haversine-formula
+
+    let lat1 = latLng1.lat;
+    let lon1 = latLng1.lng;
+    let lat2 = latLng2.lat;
+    let lon2 = latLng2.lng;
+
+    var R = 6371; // Radius of the earth in km
+    var dLat = deg2rad(lat2 - lat1);  // deg2rad below
+    var dLon = deg2rad(lon2 - lon1);
+    var a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2)
+        ;
+    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    var d = R * c; // Distance in km
+
+    function deg2rad(deg) {
+        return deg * (Math.PI / 180)
+    }
+    return d;
 }
 
 exports.uuid = uuid;
@@ -999,6 +1150,25 @@ function init() {
 
 
 },{"../res/config":1,"./game":8}],11:[function(require,module,exports){
+const GameConsole = require("./game-console");
+
+exports.Player = Player;
+function Player(game) {
+    /*
+    Yea, the player
+
+    game = Game instance
+    */
+    this.game = game;
+
+    this.entity = this.game.entities.create({});
+
+    // test
+    this.game.gameMap.onClick(function(e){
+        this.game.gameMap.addMarker(e.latLng, "enemy");
+    }.bind(this));
+}
+},{"./game-console":5}],12:[function(require,module,exports){
 const GameConsole = require("./game-console");
 
 exports.Tests = Tests;

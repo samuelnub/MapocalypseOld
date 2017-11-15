@@ -45,7 +45,7 @@ GameData.prototype.setupCommands = function() {
                 ].join("<br>");
                 this.game.gameConsole.writeLine(outputLine, true, function(element) {
                     element.innerHTML += "<br>";
-                    let copyButton = helpers.createButton(locale.gameData.saveCommandCopyButton, function(button) {
+                    let copyButton = helpers.createButton(locale.general.copy, function(button) {
                         helpers.copyToClipboard(savedata);
                     });
                     element.appendChild(copyButton);

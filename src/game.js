@@ -3,6 +3,7 @@ const helpers = require("./helpers");
 const GameMap = require("./game-map");
 const GameConsole = require("./game-console");
 const GameData = require("./game-data");
+const Entities = require("./entities");
 
 const Tests = require("./tests");
 
@@ -16,6 +17,7 @@ function Game() {
     this.gameConsole = new GameConsole.GameConsole(this); // should be setup first
     this.gameMap = new GameMap.GameMap(this);
     this.gameData = new GameData.GameData(this);
+    this.entities = new Entities.Entities(this);
 
     this.tests = new Tests.Tests(this);
 
@@ -33,7 +35,7 @@ Game.prototype.setupCommands = function() {
             }
             else if(args[0] === locale.game.startCommandNewArg) {
                 (function startNewGame() {
-                    this.gameConsole.startSubroutine();
+                    
 
                     
                 })(this);

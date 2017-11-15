@@ -30,3 +30,9 @@
     
 13 Nov 2017
     entities/entity/player class start, also more work into gamemap class
+
+15 Nov 2017
+    oH my GOD, there's object literal GETTERS, AAAAA
+    you can now grab anything that's in your object, WITHIN THE OBJECT
+    huh, circular dependancies aren't too big of an issue here... unlike cpp
+    some work on entities and map
