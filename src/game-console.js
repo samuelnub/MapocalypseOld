@@ -19,6 +19,9 @@ exports.events = {
     */
     game: {
         gameStart: helpers.uuid() // this makes the other classes read from the savedata of gamedata
+    },
+    gameMap: {
+        printMapContextMenu: helpers.uuid()
     }
 };
 
@@ -93,6 +96,13 @@ GameConsole.prototype.writeLine = function(line, doNotSanitize, callback) {
             callback(lineP);
         }, 0);
     }
+}
+
+GameConsole.prototype.removeLine = function(lineP) {
+    /*
+    removes the specified line paragraph element from the log div
+    */
+    this.textAreaLogDiv.removeChild(lineP);
 }
 
 GameConsole.prototype.readLine = function(doNotClear) {

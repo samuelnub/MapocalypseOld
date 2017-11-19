@@ -55,7 +55,7 @@ const locale = {
         loadCommandFailed: "Couldn't load savedata!"
     },
     gameMap: {
-        
+        contextMenuInfoPretext: "Menu for selection at "
     },
     game: {
         docStartCmd: "start",
@@ -68,8 +68,11 @@ const locale = {
         startCommandSaveArg: "save"
     },
     general: {
+        programName: "Mapocalypse",
         console: "Console",
-        copy: "Copy"
+        copy: "Copy",
+        close: "Close",
+        placeholder: "Unimplemented"
     }
 };
 exports.locale = locale;

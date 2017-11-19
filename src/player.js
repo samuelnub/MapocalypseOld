@@ -10,9 +10,4 @@ function Player(game) {
     this.game = game;
 
     this.entity = this.game.entities.create({});
-
-    // test
-    this.game.gameMap.onClick(function(e){
-        this.game.gameMap.addMarker(e.latLng, "enemy");
-    }.bind(this));
 }

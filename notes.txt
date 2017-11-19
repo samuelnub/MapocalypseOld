@@ -36,3 +36,7 @@
     you can now grab anything that's in your object, WITHIN THE OBJECT
     huh, circular dependancies aren't too big of an issue here... unlike cpp
     some work on entities and map
+
+19 Nov 2017
+    mapContextMenu prototype works
+    

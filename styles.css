@@ -93,7 +93,7 @@ body {
     background-color: rgba(50, 50, 50, 0.1);
 }
 
-#console-text-area-log>p>button {
+#console-text-area-log button {
     margin: 0px;
     padding: 0px;
     border: none;
@@ -106,7 +106,11 @@ body {
     transition: all 0.1s;
 }
 
-#console-text-area-log>p>button:active {
+#console-text-area-log button:hover {
+    transform: scale(1.1);
+}
+
+#console-text-area-log button:active {
     transform: scale(0.8);
 }
 
