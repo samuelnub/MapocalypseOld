@@ -11,6 +11,14 @@ const locale = {
             ...
         ...
     */
+    entities: { // for printing to screen, remember!
+        names: {
+            player: "Player",
+            enemy: "Enemy",
+            goal: "Goal",
+            point: "Selected point"
+        }
+    },
     gameConsole: {
         docIntroCmd: "intro",
         docIntroArgs: [""],
@@ -73,6 +81,17 @@ const locale = {
         copy: "Copy",
         close: "Close",
         placeholder: "Unimplemented"
+    },
+    files: { // mostly in the /res folder
+        iconsPath: "./res/icons/",
+        iconFiletype: ".svg",
+        icons: { // svg files
+            player: "player",
+            enemy: "enemy",
+            unknown: "unknown",
+            point: "point",
+            goal: "goal"
+        }
     }
 };
 exports.locale = locale;

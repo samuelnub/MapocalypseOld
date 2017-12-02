@@ -40,3 +40,13 @@
 19 Nov 2017
     mapContextMenu prototype works
     
+25 Nov 2017
+    sliding map marker library added (first dependency lmao)
+    http://techslides.com/demos/country-capitals.json is prety developers
+    types of water (also a natural_feature):
+    sea, ocean, bay, lake, river, reservoir
+    seedrandom also added as dependency
+
+27 Nov 2017
+    Doing it in free study!
+    

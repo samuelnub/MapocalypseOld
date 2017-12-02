@@ -1,6 +1,7 @@
 const helpers = require("./helpers")
 const locale = require("../res/localisation").locale;
 const GameConsole = require("./game-console");
+const SlidingMarker = require("marker-animate-unobtrusive");
 
 exports.GameMap = GameMap;
 
@@ -12,7 +13,7 @@ function GameMap(game) {
     */
     this.game = game;
 
-    this.markers = [];
+    this.markers = {}; // key: entityId, value: marker object
 
     this.mapDiv = document.createElement("div");
     this.mapDiv.id = "map";
@@ -42,15 +43,15 @@ function GameMap(game) {
 
 GameMap.prototype.onGameStart = function() {
     console.log("Game starting! the map has heard that");
-    // test this.addMarker({lat: 0, lng: 0}, "enemy");
 }
 
-GameMap.prototype.printMapContextMenu = function(contextEvent) {
+GameMap.prototype.printMapContextMenu = function(contextEvent, entity) {
     /*
     will emit a GameConsole.events.gameMap.printMapContextMenu event, with items (check
     implementation to see, search "items")
 
     contextEvent = click event instance (with .lagLng)
+    entity = entity instance reference (optional)
     */
     if(this.mapContextMenuLineP) {
         this.game.gameConsole.removeLine(this.mapContextMenuLineP);
@@ -93,29 +94,33 @@ GameMap.prototype.printMapContextMenu = function(contextEvent) {
     
         const items = { // to be passed with the event emission
             contextEvent: contextEvent,
-            appendOption: appendOption
+            appendOption: appendOption,
+            placeId: contextEvent.placeId || null,
+            entity: entity || null
         };
 
         this.game.gameConsole.executeEvent(GameConsole.events.gameMap.printMapContextMenu, items);
     }.bind(this));
 }
 
-GameMap.prototype.addMarker = function(params) {
+GameMap.prototype.addMarkerComponent = function(params) {
     /*
     returns a google maps marker object
 
     params object:
-        latLng = LatLng object
+        entityId = string (uuid of the entity that owns this component)
+        position = LatLng object
         icon = string (just the ../res/icon's name, without the file extension)
         onClickCallback = function (callback) arguments:
             event = event object (with .latLng properties etc)
         printMapContextMenuOnClick = boolean
     */
-    let marker = new google.maps.Marker({
-        position: params.latLng || new google.maps.LatLng(0, 0),
+    let marker = new SlidingMarker({
+        position: params.position || new google.maps.LatLng(0, 0),
         icon: {
-            url: "./res/icons/" + (params.icon ? params.icon : "player-unhappy") + ".svg"
+            url: locale.files.iconsPath + (params.icon ? params.icon : locale.files.icons.unknown) + locale.files.iconFiletype
         },
+        title: params.title || locale.general.placeholder
         map: this.map
     });
     if(typeof params.onClickCallback === "function" || params.printMapContextMenuOnClick) {
@@ -128,13 +133,14 @@ GameMap.prototype.addMarker = function(params) {
             }
         }.bind(this));
     }
-    this.markers.push(marker);
+    this.markers[params.entityId] = marker;
     return marker;
 }
 
 GameMap.prototype.onClick = function(callback) {
     /*
     returns google eventListener for you to keep track of, if you want to remove it
+    you probably won't use this externally, as you'll just listen to the printMapContextMenu event
 
     callback function:
         event = event object (has .latLng properties)

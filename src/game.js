@@ -35,7 +35,7 @@ Game.prototype.setupCommands = function() {
             }
             else if(args[0] === locale.game.startCommandNewArg) {
                 (function startNewGame() {
-                    
+                    this.gameConsole.writeLine()
 
                     
                 })(this);

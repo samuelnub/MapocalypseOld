@@ -75,7 +75,7 @@ function GameConsole(game) {
     }.bind(this), true);
     this.textAreaDiv.appendChild(this.textAreaInputDiv);
 
-    this.setuDefaultCommands();
+    this.setupDefaultCommands();
 }
 
 GameConsole.prototype.writeLine = function(line, doNotSanitize, callback) {
@@ -228,7 +228,7 @@ GameConsole.prototype.endSubroutine = function(subroutineId) {
     this.subroutineIds.splice(this.subroutineIds.indexOf(subroutineId), 1);
 }
 
-GameConsole.prototype.setuDefaultCommands = function() {
+GameConsole.prototype.setupDefaultCommands = function() {
     const introCommand = new Documentation(
         locale.gameConsole.docIntroCmd,
         locale.gameConsole.docIntroArgs,

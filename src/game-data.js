@@ -14,8 +14,12 @@ function GameData(game) {
     */
     this.game = game;
 
-    this.savedata = {
-        checkNumber: 123456789
+    this.savedata = { // remember, JSON can't have functions
+        checkNumber: 123456789,
+        seed: null,
+        time: "",
+        entities: {}, // key: id, value: stats/inventory/effects
+        places: {} // key: placeId, value: overwritten stats
     };
 
     this.setupCommands();
@@ -172,3 +176,24 @@ GameData.prototype.decompress = function(compressed) {
     }
     return result;
 }
+
+function PRNG(initialSeed) {
+    this.seed = initialSeed || 420;
+}
+
+PRNG.prototype.next = function () {
+    let x = Math.sin(this.seed++) * 10000;
+    return x - Math.floor(x);
+};
+
+PRNG.prototype.nextInRange = function (min, max) {
+    return this.next() * (max - min) + min;
+};
+
+PRNG.prototype.nextInRangeFloor = function (min, max) {
+    return Math.floor(this.nextInRange(min, max));
+};
+
+PRNG.prototype.nextInRangeRound = function (min, max) {
+    return Math.round(this.nextInRange(min, max));
+};

@@ -12,5 +12,8 @@
     "game"
   ],
   "author": "Sam Y",
-  "license": "GPL-3.0"
+  "license": "GPL-3.0",
+  "dependencies": {
+    "marker-animate-unobtrusive": "^0.2.8"
+  }
 }
