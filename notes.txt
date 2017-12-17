@@ -49,4 +49,27 @@
 
 27 Nov 2017
     Doing it in free study!
+
+3 Dec 2017
+    naw, what will an entity need? 
+    BaseEntity() {
+        type: number
+        marker: Marker instance
+        stats: {...}
+
+        // functions it should have
+        onTick(callback) // your entity should implement this
+        move(latLng)
+        export()
+
+    }
+
+9 Dec 2017
+    Entities are now BaseEntities, and stuff like Player are now called
+    "entity"
+    Also, you now create a baseentity by doing new BaseEntity(), so you've
+    got intellisense suggestions lol
+
+17 Dec 2017
+    You can now determine whether it's land or water!!1
     

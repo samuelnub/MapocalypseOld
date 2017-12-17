@@ -73,14 +73,25 @@ const locale = {
             return "Do you want a [" + locale.game.startCommandNewArg + "] game or one from a previous [" + locale.game.startCommandSaveArg + "]?";
         },
         startCommandNewArg: "new",
-        startCommandSaveArg: "save"
+        startCommandSaveArg: "save",
+        startCommandNewSpawn: "Click the position you want to spawn at.",
+        startCommandNewGoal: "Now click the position you're going to aim for.",
+        get startCommandNewSpawnButton() {
+            return locale.general.select + " this as the spawn position";
+        },
+        get startCommandNewGoalButton() {
+            return locale.general.select + " this as the goal position";
+        }
     },
     general: {
         programName: "Mapocalypse",
         console: "Console",
         copy: "Copy",
         close: "Close",
-        placeholder: "Unimplemented"
+        placeholder: "Unimplemented",
+        nothing: "",
+        select: "Select",
+        noThatsWater: "Nope, that's water!"
     },
     files: { // mostly in the /res folder
         iconsPath: "./res/icons/",

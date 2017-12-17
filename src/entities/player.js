@@ -1,4 +1,5 @@
 const consts = require("../../res/consts").consts;
+const BaseEntity = require("../entities").BaseEntity;
 
 exports.Player = Player;
 function Player(game, params) {
@@ -8,13 +9,11 @@ function Player(game, params) {
     game object = Game instance
 
     params object:
-
+        baseEntityParams: refer to BaseEntities
     */
     this.game = game;
 
-    this.entity = game.entities.create(consts.entities.types.player, this);
-
-    this.components = {
-        stats: game.entities.componentManagers.stats.create(this.entity.id, {})
-    };
+    this.baseEntity = new BaseEntity({
+        
+    });
 }

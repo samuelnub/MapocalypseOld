@@ -1,4 +1,4 @@
-const helpers = require("./helpers")
+const helpers = require("./helpers");
 const locale = require("../res/localisation").locale;
 const GameConsole = require("./game-console");
 const SlidingMarker = require("marker-animate-unobtrusive");
@@ -13,7 +13,7 @@ function GameMap(game) {
     */
     this.game = game;
 
-    this.markers = {}; // key: entityId, value: marker object
+    this.markers = [];
 
     this.mapDiv = document.createElement("div");
     this.mapDiv.id = "map";
@@ -31,6 +31,8 @@ function GameMap(game) {
     this.map.mapTypes.set("mapocalypse_style", mapocalypseMapStyle);
     this.map.setMapTypeId("mapocalypse_style");
 
+    this.placesService = new google.maps.places.PlacesService(this.map);
+
     this.mapContextMenuLineP = null; // remember to set this to null whenever you remove lineP from the console!
     this.onClick(function(e) {
         this.printMapContextMenu(e);
@@ -38,7 +40,7 @@ function GameMap(game) {
 
     game.mainDiv.appendChild(this.mapDiv);
 
-    game.gameConsole.addEventListener(GameConsole.events.game.gameStart, this.onGameStart.bind(this));
+    game.gameConsole.addEventListener(GameConsole.events.game.gameStartNew, this.onGameStart.bind(this));
 }
 
 GameMap.prototype.onGameStart = function() {
@@ -73,22 +75,24 @@ GameMap.prototype.printMapContextMenu = function(contextEvent, entity) {
         infoDiv.innerHTML = locale.gameMap.contextMenuInfoPretext + contextEvent.latLng.lat() + " " + contextEvent.latLng.lng() + " ";
         lineP.appendChild(infoDiv);
         
+        const optionsEle = document.createElement("div");
+        lineP.appendChild(optionsEle);
+
         const appendOption = function(params) {
             /*
             params object:
                 text = string
                 callback = function, arguments:
-                    event = click event details (.latLng properties etc)
+                    event = contextEvent details (.latLng properties etc) (in case you lose it)
             */
             const optionButt = helpers.createButton(params.text || locale.general.placeholder, function() {
                 if(typeof params.callback === "function") {
-                    params.callback(e);
+                    params.callback(contextEvent);
                 }
                 this.game.gameConsole.removeLine(lineP);
                 this.mapContextMenuLineP = null;
             }.bind(this));
-            const listEle = document.createElement("li");
-            listEle.appendChild(optionButt);
+            optionsEle.appendChild(optionButt);
             // TODO: sort and insert list element
         }.bind(this);
     
@@ -103,14 +107,14 @@ GameMap.prototype.printMapContextMenu = function(contextEvent, entity) {
     }.bind(this));
 }
 
-GameMap.prototype.addMarkerComponent = function(params) {
+GameMap.prototype.createMarker = function(params) {
     /*
     returns a google maps marker object
 
     params object:
-        entityId = string (uuid of the entity that owns this component)
-        position = LatLng object
-        icon = string (just the ../res/icon's name, without the file extension)
+        position = latLng
+        icon = string
+        title = string
         onClickCallback = function (callback) arguments:
             event = event object (with .latLng properties etc)
         printMapContextMenuOnClick = boolean
@@ -120,7 +124,7 @@ GameMap.prototype.addMarkerComponent = function(params) {
         icon: {
             url: locale.files.iconsPath + (params.icon ? params.icon : locale.files.icons.unknown) + locale.files.iconFiletype
         },
-        title: params.title || locale.general.placeholder
+        title: params.title || locale.general.nothing,
         map: this.map
     });
     if(typeof params.onClickCallback === "function" || params.printMapContextMenuOnClick) {
@@ -133,7 +137,7 @@ GameMap.prototype.addMarkerComponent = function(params) {
             }
         }.bind(this));
     }
-    this.markers[params.entityId] = marker;
+    this.markers.push(marker);
     return marker;
 }
 
@@ -161,4 +165,37 @@ GameMap.prototype.removeOnClick = function(eventListener) {
     eventListener = google.maps.event EventListener
     */
     google.maps.event.removeListener(eventListener);
+}
+
+GameMap.prototype.isPosWater = function(pos, callback) {
+    /*
+    obtained from https://stackoverflow.com/questions/35073585/javascript-only-detect-land-or-water-google-maps
+    and also https://stackoverflow.com/questions/9644452/verify-if-a-point-is-land-or-water-in-google-maps
+    not sure if it's within google's TOCs, but it works really well compared to other hacky wackies
+
+    pos: latLng object
+
+    callback function: args:
+        isWater = bool
+    */
+    let mapUrl = "http://maps.googleapis.com/maps/api/staticmap?center="+pos.lat()+","+pos.lng()+"&zoom="+this.map.getZoom()+"&size=1x1&maptype=roadmap"
+    let canvas = document.createElement('canvas');
+    let ctx = canvas.getContext('2d');
+
+    let image = new Image();
+    image.crossOrigin = "Anonymous"; // dope hack
+    image.src = mapUrl;
+
+    image.onload = function() {
+        canvas.width = image.width;
+        canvas.height = image.height;
+        canvas.getContext('2d').drawImage(image, 0, 0, image.width, image.height);
+        let pixelData = canvas.getContext('2d').getImageData(0, 0, 1, 1).data;
+        if( pixelData[0] > 160 && pixelData[0] < 181 && pixelData[1] > 190 && pixelData[1] < 210 ) {
+            result = true
+        } else {
+            result = false;
+        }
+        callback(result);
+    }
 }

@@ -18,7 +18,11 @@ function GameData(game) {
         checkNumber: 123456789,
         seed: null,
         time: "",
-        entities: {}, // key: id, value: stats/inventory/effects
+        entities: {
+            player: null,
+            enemies: [],
+            goal: null
+        },
         places: {} // key: placeId, value: overwritten stats
     };
 

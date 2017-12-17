@@ -18,7 +18,8 @@ exports.events = {
         ...
     */
     game: {
-        gameStart: helpers.uuid() // this makes the other classes read from the savedata of gamedata
+        gameStartNew: helpers.uuid(), 
+        gameStartLoad: helpers.uuid() // this makes the other classes read from the savedata of gamedata
     },
     gameMap: {
         printMapContextMenu: helpers.uuid()
@@ -118,14 +119,14 @@ GameConsole.prototype.readLine = function(doNotClear) {
     return line;
 }
 
-GameConsole.prototype.onEnter = function(callback, dontRemoveEventListener) {
+GameConsole.prototype.onEnter = function(callback, notOnce) {
     /*
     When user presses enter, what do you wanna do? (mostly for subroutines)
 
     callback function:
         -no arguments (but you may want to read line within your callback, i assume)
     
-    dontRemoveEventListener = boolean (probably dont configure this externally)
+    notOnce = boolean (probably dont configure this externally)
     */
     const callCallback = function(e) {
         e.preventDefault();
@@ -133,7 +134,7 @@ GameConsole.prototype.onEnter = function(callback, dontRemoveEventListener) {
             setTimeout(function () {
                 callback();
             }.bind(this), 0);
-            if(dontRemoveEventListener) {
+            if(notOnce) {
                return; 
             }
             else {
@@ -143,7 +144,6 @@ GameConsole.prototype.onEnter = function(callback, dontRemoveEventListener) {
     }
     const callCallbackBound = callCallback.bind(this);
     this.textAreaInputDiv.addEventListener("keyup", callCallbackBound, true);
-    //TODO: broken af
 }
 
 GameConsole.prototype.executeCommand = function(command, args) {
@@ -190,7 +190,7 @@ GameConsole.prototype.addCommandListener = function(documentation) {
     }.bind(this));
 }
 
-GameConsole.prototype.addEventListener = function(eventName, callback) {
+GameConsole.prototype.addEventListener = function(eventName, callback, once) {
     /*
     since it's internal, you dont need any documentation that the user needs
     to see
@@ -198,10 +198,18 @@ GameConsole.prototype.addEventListener = function(eventName, callback) {
     callback function:
         items object:
             just items passed by the emitter
+    once: bool (removes once it's been done)
     */
-    if(typeof callback === "function") {
-        this.eventsElement.addEventListener(eventName, callback);
-    }
+    const callCallback = function(e) {
+        if(typeof callback === "function") {
+            callback(e.detail.items);
+        }
+        if(once) {
+            this.eventsElement.removeEventListener(eventName, callCallbackBound);
+        }
+    };
+    const callCallbackBound = callCallback.bind(this);
+    this.eventsElement.addEventListener(eventName, callCallbackBound);
 }
 
 GameConsole.prototype.startSubroutine = function(subroutine) {

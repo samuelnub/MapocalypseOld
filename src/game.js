@@ -34,11 +34,57 @@ Game.prototype.setupCommands = function() {
                 this.gameConsole.writeLine(locale.game.startCommandNoArgs);
             }
             else if(args[0] === locale.game.startCommandNewArg) {
-                (function startNewGame() {
-                    this.gameConsole.writeLine()
+                let spawnPos = null;
+                let goalPos = null;
 
-                    
-                })(this);
+                const getSpawnPos = function() {
+                    this.gameConsole.writeLine(locale.game.startCommandNewSpawn);
+                    this.gameConsole.addEventListener(GameConsole.events.gameMap.printMapContextMenu, function(items) {
+                        items.appendOption({
+                            text: locale.game.startCommandNewSpawnButton,
+                            callback: function(e) {
+                                this.gameMap.isPosWater(items.contextEvent.latLng, function(isWater) {
+                                    if(isWater) {
+                                        this.gameConsole.writeLine(locale.general.noThatsWater);
+                                        getSpawnPos();
+                                        return;
+                                    }
+                                    else {
+                                        spawnPos = items.contextEvent.latLng;
+                                        getGoalPos();
+                                    }
+                                }.bind(this));
+                            }.bind(this)
+                        });
+                    }.bind(this), true);
+                }.bind(this);
+
+                const getGoalPos = function() {
+                    this.gameConsole.writeLine(locale.game.startCommandNewGoal);
+                    this.gameConsole.addEventListener(GameConsole.events.gameMap.printMapContextMenu, function(items) {
+                        items.appendOption({
+                            text: locale.game.startCommandNewGoalButton,
+                            callback: function(e) {
+                                this.gameMap.isPosWater(items.contextEvent.latLng, function(isWater) {
+                                    if(isWater) {
+                                        this.gameConsole.writeLine(locale.general.noThatsWater);
+                                        getGoalPos();
+                                        return;
+                                    }
+                                    else {
+                                        goalPos = items.contextEvent.latLng;
+                                        this.gameConsole.executeEvent(GameConsole.events.game.gameStartNew, {
+                                            spawnPos: spawnPos,
+                                            goalPos: goalPos
+                                        });
+                                    }
+                                }.bind(this));
+                            }.bind(this)
+                        });
+                    }.bind(this), true);
+                }.bind(this);
+
+                getSpawnPos();
             }
             else if(args[0] === locale.game.startCommandSaveArg) {
                 this.gameData.load(args[1]);

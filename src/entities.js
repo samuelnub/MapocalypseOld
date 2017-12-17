@@ -1,9 +1,9 @@
 const helpers = require("./helpers");
 const consts = require("../res/consts").consts;
 const GameConsole = require("./game-console");
-const StatsComponentManager = require("./components/stats-component");
 
 exports.Entities = Entities;
+exports.Entity = BaseEntity;
 
 function Entities(game) {
     /*
@@ -13,95 +13,84 @@ function Entities(game) {
     */
     this.game = game;
 
-    this.entityList = {}; // general pool, key: entity.id, value: object composing of an entity
+    this.baseEntityList = {}; // general pool, key: baseEntity.id, value: object composing of an entity
 
-    this.componentIds = { // do not clear these by setting it to an empty array
-        stats: [],
-        movement: [],
-        graphial: [],
-        ai: [],
-        input: []
+    this.entities = { // actual entities that consist of the BaseEntity
+        player: null,
+        enemies: [],
+        goal: null,
     };
 
-    this.componentManagers = {
-        stats: new StatsComponentManager.StatsComponentManager(this.game)
-    };
-
-    this.game.gameConsole.addEventListener(GameConsole.events.game.gameStart, this.onGameStart.bind(this));
+    this.game.gameConsole.addEventListener(GameConsole.events.game.gameStartNew, function(items) {
+        this.onGameStartNew(items);
+    }.bind(this));
+    this.game.gameConsole.addEventListener(GameConsole.events.game.gameStartLoad, function() {
+        this.onGameStartLoad();
+    }.bind(this));
 }
 
-Entities.prototype.onGameStart = function() {
-    // TODO: clear all entities to start afresh
-    // (youll have to go through things like map markers and clear those)
-    for(let entity of this.entityList) {
-        this.remove(entity);
-    }
-
-}
-
-Entities.prototype.create = function(type, typeRef) {
+Entities.prototype.onGameStartNew = function(items) {
     /*
-    returns a new entity (which has been shoved into the entity pool object)
-
-    type = int
-        reference consts.js file for entity types
-
-    typeRef object: the object that contains this new entity you want, eg,
-    the Player() class instance's "this" context
+    items object: from the event emitted by onGameStartNew
     */
-    params.game = this.game;
-    const entity = new Entity(type, typeRef);
-    this.entityList[entity.id] = entity;
-    return entity;
+    this.game.gameConsole.writeLine("Haha fools, a new game has begun");
+}
+
+Entities.prototype.onGameStartLoad = function() {
+
 }
 
 Entities.prototype.remove = function(entity) {
     /*
-    entity object: Entity reference
-    */
-    for(let components of this.componentIds) {
-        try {
-            components.splice(components.indexOf(entity.id));
-        }
-        catch(e) {
-            ;
-        }
-    }
-    delete this.entityList[entity.id];
-}
-
-Entities.prototype.getEntityData = function(entity) {
-    /*
-    returns an object with all the juicy, minimalist info you need to save
-    its state
-
-    entity object: Entity instance
+    entity object: BaseEntity reference
     */
 
-    let output = {};
-    output.entity = {
-        id: entity.id,
-        type: entity.type
-    };
-    for(let component of entity.components) {
-        // TODO: export an entity's essential data for saving
-    }
 }
 
 Entities.prototype.tick = function() {
-    for(let manager of this.componentManagers) {
-        manager.tick();
-    }
+
 }
 
-function Entity(type, typeRef) {
+function BaseEntity(params) {
     /*
-    type = number (Reference consts.js for entity types)
-    
-    typeRef = the object that created the new entity (eg Player() instance)
+    params object:
+        game = Game instance
+        type = number
+        markerParams object:
+            refer to params object
+        stats object:
+            health: float,
+            blood: float,
+            stamina: float,
+            hunger: float,
+            thirst: float,
+            happiness: float,
+            alertness: float,
+            temperature: float
+            inventory: [],
+            effects: []
     */
+    this.game = params.game;
     this.id = helpers.uuid();
-    this.type = type;
-    this.typeRef = typeRef;
-    console.log("I am a new entity! with id " + this.id + " and type " + this.type);
+
+    this.game.entities.entityList[this.id] = this;
+
+    this.type = params.type;
+    this.marker = this.game.gameMap.createMarker(
+        params.markerParams || {}
+    );
+
+    this.stats = {
+        health: params.health || 1.0,
+        blood: params.blood || 1.0,
+        stamina: params.stamina || 1.0,
+        hunger: params.hunger || 0.0,
+        thirst: params.thirst || 0.0,
+        happiness: params.happiness || 0.5,
+        alertness: params.alertness || 0.5,
+        temperature: params.temperature || 0.5,
+        inventory: params.inventory || [],
+        effects: params.effects || []
+    };
 }
+
