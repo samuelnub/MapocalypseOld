@@ -13,7 +13,7 @@ function GameMap(game) {
     */
     this.game = game;
 
-    this.markers = [];
+    this.markers = {};
 
     this.mapDiv = document.createElement("div");
     this.mapDiv.id = "map";
@@ -113,6 +113,7 @@ GameMap.prototype.createMarker = function(params) {
 
     params object:
         position = latLng
+        id = string (UUID, if you're an entity making a marker, pass your ID.)
         icon = string
         title = string
         onClickCallback = function (callback) arguments:
@@ -127,6 +128,7 @@ GameMap.prototype.createMarker = function(params) {
         title: params.title || locale.general.nothing,
         map: this.map
     });
+    marker.id = params.id || helpers.uuid();
     if(typeof params.onClickCallback === "function" || params.printMapContextMenuOnClick) {
         marker.addListener("click", function(e) {
             if(typeof params.onClickCallback === "function") {
@@ -137,8 +139,16 @@ GameMap.prototype.createMarker = function(params) {
             }
         }.bind(this));
     }
-    this.markers.push(marker);
+    this.markers[marker.id] = marker;
     return marker;
+}
+
+GameMap.prototype.removeMarker = function(marker) {
+    /*
+    marker: marker you want to remove, duh
+    */
+    this.markers[marker.id].setMap(null);
+    delete this[marker.id];
 }
 
 GameMap.prototype.onClick = function(callback) {
@@ -167,7 +177,7 @@ GameMap.prototype.removeOnClick = function(eventListener) {
     google.maps.event.removeListener(eventListener);
 }
 
-GameMap.prototype.isPosWater = function(pos, callback) {
+GameMap.prototype.isPosWater = function(position, callback) {
     /*
     obtained from https://stackoverflow.com/questions/35073585/javascript-only-detect-land-or-water-google-maps
     and also https://stackoverflow.com/questions/9644452/verify-if-a-point-is-land-or-water-in-google-maps
@@ -178,7 +188,7 @@ GameMap.prototype.isPosWater = function(pos, callback) {
     callback function: args:
         isWater = bool
     */
-    let mapUrl = "http://maps.googleapis.com/maps/api/staticmap?center="+pos.lat()+","+pos.lng()+"&zoom="+this.map.getZoom()+"&size=1x1&maptype=roadmap"
+    let mapUrl = "http://maps.googleapis.com/maps/api/staticmap?center="+position.lat()+","+position.lng()+"&zoom="+this.map.getZoom()+"&size=1x1&maptype=roadmap"
     let canvas = document.createElement('canvas');
     let ctx = canvas.getContext('2d');
 
@@ -196,6 +206,8 @@ GameMap.prototype.isPosWater = function(pos, callback) {
         } else {
             result = false;
         }
-        callback(result);
+        if(typeof callback === "function") {
+            callback(result);
+        }
     }
 }

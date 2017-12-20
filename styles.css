@@ -111,7 +111,7 @@ body {
 }
 
 #console-text-area-log button:active {
-    transform: scale(0.8);
+    transform: scale(0.9);
 }
 
 #console-text-area-input[type="text"] {

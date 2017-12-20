@@ -3,7 +3,8 @@ const helpers = require("./helpers");
 
 exports.GameConsole = GameConsole;
 exports.Documentation = Documentation;
-exports.events = {
+
+const events = {
     /*
     Houses eventnames that can/will be executed along the way by some function
     Commands doesnt need one of 
@@ -25,6 +26,7 @@ exports.events = {
         printMapContextMenu: helpers.uuid()
     }
 };
+exports.events = events;
 
 function GameConsole(game) {
     /*

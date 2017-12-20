@@ -72,4 +72,12 @@
 
 17 Dec 2017
     You can now determine whether it's land or water!!1
-    
+
+19 Dec 2017
+    baseEntity is back to entity, and now things like the player class
+    are now player managers and are "static"
+    can spawn a new player..!!!
+
+20 Dec 2017
+    player can mOOOOvEEeeE (might want to move the function for moving
+    over to the PlayerManager class...)

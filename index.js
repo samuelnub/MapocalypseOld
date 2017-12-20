@@ -10902,17 +10902,6 @@ const config = {
 };
 exports.config = config;
 },{}],6:[function(require,module,exports){
-const consts = {
-    entities: {
-        types: {
-            player: 1,
-            goal: 2,
-            enemy: 3
-        }
-    }
-};
-exports.consts = consts;
-},{}],7:[function(require,module,exports){
 const locale = {
     /*
     Strings for every string that appears in the game/webpage (except the warning lmao)
@@ -10932,6 +10921,12 @@ const locale = {
             enemy: "Enemy",
             goal: "Goal",
             point: "Selected point"
+        },
+        player: {
+            moveToButton: "Travel here"
+        },
+        goal: {
+
         }
     },
     gameConsole: {
@@ -10962,7 +10957,7 @@ const locale = {
         },
         helpHelpFor: "Help for ",
         helpSyntax: "Syntax: ",
-        youCanAskForHelpFor: "You can as for help regarding:<br>",
+        youCanAskForHelpFor: "You can ask for help regarding:<br>",
         sayCommandYou: "[You] "
     },
     gameData: {
@@ -10990,7 +10985,7 @@ const locale = {
         startCommandNewArg: "new",
         startCommandSaveArg: "save",
         startCommandNewSpawn: "Click the position you want to spawn at.",
-        startCommandNewGoal: "Now click the position you're going to aim for.",
+        startCommandNewGoal: "Now click the position you're going to aim for. (Preferably a reasonable distance away from your spawn position - but hey, who am I to judge?)",
         get startCommandNewSpawnButton() {
             return locale.general.select + " this as the spawn position";
         },
@@ -11006,7 +11001,8 @@ const locale = {
         placeholder: "Unimplemented",
         nothing: "",
         select: "Select",
-        noThatsWater: "Nope, that's water!"
+        noThatsWater: "Nope, that's water!",
+        noThatsTooFar: "Nope, that's too far!"
     },
     files: { // mostly in the /res folder
         iconsPath: "./res/icons/",
@@ -11021,7 +11017,7 @@ const locale = {
     }
 };
 exports.locale = locale;
-},{}],8:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 const mapStyle = [
     {
         "elementType": "geometry",
@@ -11241,13 +11237,40 @@ const mapStyle = [
     }
 ];
 exports.mapStyle = mapStyle;
-},{}],9:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 const helpers = require("./helpers");
-const consts = require("../res/consts").consts;
+const locale = require("../res/localisation").locale;
 const GameConsole = require("./game-console");
 
+const PlayerManager = require("./entities/player-manager");
+
 exports.Entities = Entities;
-exports.Entity = BaseEntity;
+exports.Entity = Entity;
+
+const maxMoveRadiusKm = 5;
+exports.maxMoveRadiusKm = maxMoveRadiusKm;
+
+const entityTypes = {
+    player: 1,
+    goal: 2,
+    enemy: 3
+};
+exports.entityTypes = entityTypes;
+
+const entityTypesMarkerParams = {
+    [entityTypes.player]: {
+        icon: locale.files.icons.player,
+        title: locale.entities.names.player
+    },
+    [entityTypes.goal]: {
+        icon: locale.files.icons.goal,
+        title: locale.entities.names.goal
+    },
+    [entityTypes.enemy]: {
+        icon: locale.files.icons.enemy,
+        title: locale.entities.names.enemy
+    }
+};
 
 function Entities(game) {
     /*
@@ -11257,52 +11280,107 @@ function Entities(game) {
     */
     this.game = game;
 
-    this.baseEntityList = {}; // general pool, key: baseEntity.id, value: object composing of an entity
+    this.entityList = {}; // general pool, key: baseEntity.id, value: object composing of an entity
 
-    this.entities = { // actual entities that consist of the BaseEntity
-        player: null,
-        enemies: [],
-        goal: null,
+    this.entityManagers = {
+        /*
+        Manager classes must contain at least:
+            this.entityIds = Set()
+            this.tick = function(entity)
+            this.onClick = function(entity)
+        */
+        [entityTypes.player]: new PlayerManager.PlayerManager(game)
     };
+    
+    this.setupEventListeners();
+}
 
+Entities.prototype.setupEventListeners = function() {
     this.game.gameConsole.addEventListener(GameConsole.events.game.gameStartNew, function(items) {
-        this.onGameStartNew(items);
+        this.onGameStart(items).bind(this);
     }.bind(this));
     this.game.gameConsole.addEventListener(GameConsole.events.game.gameStartLoad, function() {
-        this.onGameStartLoad();
+        this.onGameStart().bind(this);
+    }.bind(this));
+
+    this.game.gameConsole.addEventListener(GameConsole.events.gameMap.printMapContextMenu, function(items) {
+        // because clicking the map isn't directly related to the player
+        // entity, we need to listen out for general map clicks
+        if(this.entityManagers[entityTypes.player].entityIds.size > 0) {
+            // the player exists, cool
+            let playerEntity = this.entityList[this.entityManagers[entityTypes.player].getPlayerEntityId()];
+            let newPosAttempt = items.contextEvent.latLng;
+            let curPos = playerEntity.stats.position;
+
+            items.appendOption({
+                text: locale.entities.player.moveToButton,
+                callback: function(e) {
+                    
+                    if(helpers.distBetweenLatLngKm(curPos, newPosAttempt) > maxMoveRadiusKm) {
+                        this.game.gameConsole.writeLine(locale.general.noThatsTooFar);
+                        return;
+                    }
+                    this.game.gameMap.isPosWater(newPosAttempt, function(isWater) {
+                        if(isWater) {
+                            this.game.gameConsole.writeLine(locale.general.noThatsWater);
+                            return;
+                        }
+                        playerEntity.move(newPosAttempt, true, function(e) {
+                            console.log("Player just finished moving (should tick now)");
+                        });
+                    }.bind(this));
+                }.bind(this)
+            });
+        }
     }.bind(this));
 }
 
-Entities.prototype.onGameStartNew = function(items) {
+Entities.prototype.onGameStart = function(items) {
     /*
     items object: from the event emitted by onGameStartNew
+    so if it's from load, no items are passed and you'd just read from savedata
     */
-    this.game.gameConsole.writeLine("Haha fools, a new game has begun");
-}
+    for(const id of Object.keys(this.entityList)) {
+        this.remove(this.entityList[id]);
+    }
 
-Entities.prototype.onGameStartLoad = function() {
+    if(items) { // from new
+        let playerEntity = new Entity({
+            game: this.game,
+            type: entityTypes.player,
+            stats: {
+                position: items.spawnPos
+            }
+        });
+    }
+    else { // from load
 
+    }
 }
 
 Entities.prototype.remove = function(entity) {
     /*
-    entity object: BaseEntity reference
+    entity object: entity reference
     */
-
+    this.game.gameMap.removeMarker(entity.marker);
+    this.entityManagers[entity.type].entityIds.delete(entity.id);
+    delete this.entityList[entity.id];
 }
 
 Entities.prototype.tick = function() {
-
+    for(const id of Object.keys(this.entityList)) {
+        this.entityManagers[this.entityList[id].type].tick(this.entityList[id]);
+    }
 }
 
-function BaseEntity(params) {
+function Entity(params) {
     /*
     params object:
         game = Game instance
+        id = string
         type = number
-        markerParams object:
-            refer to params object
         stats object:
+            position: latLng
             health: float,
             blood: float,
             stamina: float,
@@ -11315,37 +11393,118 @@ function BaseEntity(params) {
             effects: []
     */
     this.game = params.game;
-    this.id = helpers.uuid();
+    this.id = params.id || helpers.uuid();
+    this.type = params.type;
 
     this.game.entities.entityList[this.id] = this;
-
-    this.type = params.type;
-    this.marker = this.game.gameMap.createMarker(
-        params.markerParams || {}
-    );
+    this.game.entities.entityManagers[this.type].entityIds.add(this.id);
 
     this.stats = {
-        health: params.health || 1.0,
-        blood: params.blood || 1.0,
-        stamina: params.stamina || 1.0,
-        hunger: params.hunger || 0.0,
-        thirst: params.thirst || 0.0,
-        happiness: params.happiness || 0.5,
-        alertness: params.alertness || 0.5,
-        temperature: params.temperature || 0.5,
-        inventory: params.inventory || [],
-        effects: params.effects || []
+        position: params.stats.position || new google.maps.LatLng(0, 0),
+        health: params.stats.health || 1.0,
+        blood: params.stats.blood || 1.0,
+        stamina: params.stats.stamina || 1.0,
+        hunger: params.stats.hunger || 0.0,
+        thirst: params.stats.thirst || 0.0,
+        happiness: params.stats.happiness || 0.5,
+        alertness: params.stats.alertness || 0.5,
+        temperature: params.stats.temperature || 0.5,
+        inventory: params.stats.inventory || [],
+        effects: params.stats.effects || []
+    };
+
+    let markerParams = entityTypesMarkerParams[this.type];
+    markerParams.position = this.stats.position;
+    markerParams.id = this.id;
+    markerParams.onClickCallback = function() {
+        this.game.entities.entityManagers[this.type].onClick(this);
+    }.bind(this);
+    markerParams.printMapContextMenuOnClick = true;
+    this.marker = this.game.gameMap.createMarker(markerParams);
+}
+
+Entity.prototype.move = function(position, adjustStats, callback) {
+    /*
+    Moves the entity's marker and stats position.
+    if adjustStats is true, it'll also decrement/increment stats
+
+    position: latLng
+    adjustStats: bool
+    callback: function
+        newPos = latLng
+    */
+
+    this.marker.setPosition(position);
+    this.stats.position = position;
+
+    if(adjustStats) {
+        // TODO: complex shazam
+    }
+    // update stats.position too
+}
+
+Entity.prototype.export = function() {
+    /*
+    returns an object that just has the things you need
+    */
+    return {
+        id: this.id,
+        type: this.type,
+        stats: this.stats
     };
 }
 
+},{"../res/localisation":6,"./entities/player-manager":9,"./game-console":10,"./helpers":14}],9:[function(require,module,exports){
+const GameConsole = require("../game-console");
 
-},{"../res/consts":6,"./game-console":10,"./helpers":14}],10:[function(require,module,exports){
+exports.PlayerManager = PlayerManager;
+function PlayerManager(game) {
+    /*
+    Player manager
+
+    game object = Game instance
+    */
+    this.game = game;
+
+    this.entityIds = new Set();
+}
+
+PlayerManager.prototype.tick = function(entity) {
+    /*
+    entity object = entity that has been iterated through during entity.tick()
+    */
+}
+
+PlayerManager.prototype.onClick = function(entity) {
+    /*
+    When that entity (that called this) is clicked, what should be done?
+
+    entity object = entity that called this function
+    */
+    this.game.gameConsole.addEventListener(GameConsole.events.gameMap.printMapContextMenu, function(items) {
+        items.appendOption({
+            text: "Say hi",
+            callback: function(e) {
+                this.game.gameConsole.writeLine("hello!");
+            }.bind(this)
+        });
+    }.bind(this), true);
+}
+
+PlayerManager.prototype.getPlayerEntityId = function() {
+    /*
+    Just your friendly neighbourhood helper
+    */
+    return this.entityIds.values().next().value; // it's a hellhole
+}
+},{"../game-console":10}],10:[function(require,module,exports){
 const locale = require("../res/localisation").locale;
 const helpers = require("./helpers");
 
 exports.GameConsole = GameConsole;
 exports.Documentation = Documentation;
-exports.events = {
+
+const events = {
     /*
     Houses eventnames that can/will be executed along the way by some function
     Commands doesnt need one of 
@@ -11367,6 +11526,7 @@ exports.events = {
         printMapContextMenu: helpers.uuid()
     }
 };
+exports.events = events;
 
 function GameConsole(game) {
     /*
@@ -11434,7 +11594,6 @@ GameConsole.prototype.writeLine = function(line, doNotSanitize, callback) {
     lineP.classList.add("console-line");
     lineP.innerHTML = (doNotSanitize ? line : helpers.sanitizeInput(line));
     this.textAreaLogDiv.appendChild(lineP);
-    this.textAreaDiv.scrollTop = this.textAreaDiv.scrollHeight;
     if(typeof callback === "function") {
         setTimeout(function() {
             callback(lineP);
@@ -11647,7 +11806,7 @@ function Documentation(command, args, description, callback) {
     self.description = description || locale.gameConsole.docUnimplementedDesc;
     self.callback = callback || function() { console.log("Unimplemented documentation of " + self.command); };
 }
-},{"../res/localisation":7,"./helpers":14}],11:[function(require,module,exports){
+},{"../res/localisation":6,"./helpers":14}],11:[function(require,module,exports){
 const locale = require("../res/localisation").locale;
 const helpers = require("./helpers");
 const GameConsole = require("./game-console");
@@ -11851,7 +12010,7 @@ PRNG.prototype.nextInRangeFloor = function (min, max) {
 PRNG.prototype.nextInRangeRound = function (min, max) {
     return Math.round(this.nextInRange(min, max));
 };
-},{"../res/localisation":7,"./game-console":10,"./helpers":14}],12:[function(require,module,exports){
+},{"../res/localisation":6,"./game-console":10,"./helpers":14}],12:[function(require,module,exports){
 const helpers = require("./helpers");
 const locale = require("../res/localisation").locale;
 const GameConsole = require("./game-console");
@@ -11867,7 +12026,7 @@ function GameMap(game) {
     */
     this.game = game;
 
-    this.markers = [];
+    this.markers = {};
 
     this.mapDiv = document.createElement("div");
     this.mapDiv.id = "map";
@@ -11967,6 +12126,7 @@ GameMap.prototype.createMarker = function(params) {
 
     params object:
         position = latLng
+        id = string (UUID, if you're an entity making a marker, pass your ID.)
         icon = string
         title = string
         onClickCallback = function (callback) arguments:
@@ -11981,6 +12141,7 @@ GameMap.prototype.createMarker = function(params) {
         title: params.title || locale.general.nothing,
         map: this.map
     });
+    marker.id = params.id || helpers.uuid();
     if(typeof params.onClickCallback === "function" || params.printMapContextMenuOnClick) {
         marker.addListener("click", function(e) {
             if(typeof params.onClickCallback === "function") {
@@ -11991,8 +12152,16 @@ GameMap.prototype.createMarker = function(params) {
             }
         }.bind(this));
     }
-    this.markers.push(marker);
+    this.markers[marker.id] = marker;
     return marker;
+}
+
+GameMap.prototype.removeMarker = function(marker) {
+    /*
+    marker: marker you want to remove, duh
+    */
+    this.markers[marker.id].setMap(null);
+    delete this[marker.id];
 }
 
 GameMap.prototype.onClick = function(callback) {
@@ -12021,7 +12190,7 @@ GameMap.prototype.removeOnClick = function(eventListener) {
     google.maps.event.removeListener(eventListener);
 }
 
-GameMap.prototype.isPosWater = function(pos, callback) {
+GameMap.prototype.isPosWater = function(position, callback) {
     /*
     obtained from https://stackoverflow.com/questions/35073585/javascript-only-detect-land-or-water-google-maps
     and also https://stackoverflow.com/questions/9644452/verify-if-a-point-is-land-or-water-in-google-maps
@@ -12032,7 +12201,7 @@ GameMap.prototype.isPosWater = function(pos, callback) {
     callback function: args:
         isWater = bool
     */
-    let mapUrl = "http://maps.googleapis.com/maps/api/staticmap?center="+pos.lat()+","+pos.lng()+"&zoom="+this.map.getZoom()+"&size=1x1&maptype=roadmap"
+    let mapUrl = "http://maps.googleapis.com/maps/api/staticmap?center="+position.lat()+","+position.lng()+"&zoom="+this.map.getZoom()+"&size=1x1&maptype=roadmap"
     let canvas = document.createElement('canvas');
     let ctx = canvas.getContext('2d');
 
@@ -12050,10 +12219,12 @@ GameMap.prototype.isPosWater = function(pos, callback) {
         } else {
             result = false;
         }
-        callback(result);
+        if(typeof callback === "function") {
+            callback(result);
+        }
     }
 }
-},{"../res/localisation":7,"../res/map-style":8,"./game-console":10,"./helpers":14,"marker-animate-unobtrusive":3}],13:[function(require,module,exports){
+},{"../res/localisation":6,"../res/map-style":7,"./game-console":10,"./helpers":14,"marker-animate-unobtrusive":3}],13:[function(require,module,exports){
 const locale = require("../res/localisation").locale;
 const helpers = require("./helpers");
 const GameMap = require("./game-map");
@@ -12150,7 +12321,7 @@ Game.prototype.setupCommands = function() {
     );
     this.gameConsole.addCommandListener(startCommand);
 }
-},{"../res/localisation":7,"./entities":9,"./game-console":10,"./game-data":11,"./game-map":12,"./helpers":14,"./tests":16}],14:[function(require,module,exports){
+},{"../res/localisation":6,"./entities":8,"./game-console":10,"./game-data":11,"./game-map":12,"./helpers":14,"./tests":16}],14:[function(require,module,exports){
 
 exports.draggableElement = draggableElement;
 function draggableElement(elmnt) {
@@ -12234,10 +12405,10 @@ exports.distBetweenLatLngKm = distBetweenLatLngKm;
 function distBetweenLatLngKm(latLng1, latLng2) {
     // From https://stackoverflow.com/questions/27928/calculate-distance-between-two-latitude-longitude-points-haversine-formula
 
-    let lat1 = latLng1.lat;
-    let lon1 = latLng1.lng;
-    let lat2 = latLng2.lat;
-    let lon2 = latLng2.lng;
+    let lat1 = latLng1.lat();
+    let lon1 = latLng1.lng();
+    let lat2 = latLng2.lat();
+    let lon2 = latLng2.lng();
 
     var R = 6371; // Radius of the earth in km
     var dLat = deg2rad(lat2 - lat1);  // deg2rad below

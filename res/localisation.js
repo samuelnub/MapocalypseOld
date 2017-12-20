@@ -17,6 +17,12 @@ const locale = {
             enemy: "Enemy",
             goal: "Goal",
             point: "Selected point"
+        },
+        player: {
+            moveToButton: "Travel here"
+        },
+        goal: {
+
         }
     },
     gameConsole: {
@@ -47,7 +53,7 @@ const locale = {
         },
         helpHelpFor: "Help for ",
         helpSyntax: "Syntax: ",
-        youCanAskForHelpFor: "You can as for help regarding:<br>",
+        youCanAskForHelpFor: "You can ask for help regarding:<br>",
         sayCommandYou: "[You] "
     },
     gameData: {
@@ -75,7 +81,7 @@ const locale = {
         startCommandNewArg: "new",
         startCommandSaveArg: "save",
         startCommandNewSpawn: "Click the position you want to spawn at.",
-        startCommandNewGoal: "Now click the position you're going to aim for.",
+        startCommandNewGoal: "Now click the position you're going to aim for. (Preferably a reasonable distance away from your spawn position - but hey, who am I to judge?)",
         get startCommandNewSpawnButton() {
             return locale.general.select + " this as the spawn position";
         },
@@ -91,7 +97,8 @@ const locale = {
         placeholder: "Unimplemented",
         nothing: "",
         select: "Select",
-        noThatsWater: "Nope, that's water!"
+        noThatsWater: "Nope, that's water!",
+        noThatsTooFar: "Nope, that's too far!"
     },
     files: { // mostly in the /res folder
         iconsPath: "./res/icons/",
