@@ -93,6 +93,7 @@ GameMap.prototype.printMapContextMenu = function(contextEvent, entity) {
                 this.mapContextMenuLineP = null;
             }.bind(this));
             optionsEle.appendChild(optionButt);
+            optionsEle.appendChild(document.createElement("br"));
             // TODO: sort and insert list element
         }.bind(this);
     

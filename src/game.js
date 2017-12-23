@@ -86,9 +86,10 @@ Game.prototype.setupCommands = function() {
 
                 getSpawnPos();
             }
-            else if(args[0] === locale.game.startCommandSaveArg) {
-                this.gameData.load(args[1]);
-                this.gameConsole.executeEvent(GameConsole.events.game.gameStart); // no items passed - assume that other classes will read off of savedata in gamedata
+            else if(args[0] === locale.game.startCommandLoadArg) {
+                this.gameData.load(args[1], function(savedata) {
+                    this.gameConsole.executeEvent(GameConsole.events.game.gameStartLoad, savedata);                 
+                }.bind(this));
             }
         }.bind(this)
     );

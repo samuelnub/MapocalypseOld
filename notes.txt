@@ -81,3 +81,13 @@
 20 Dec 2017
     player can mOOOOvEEeeE (might want to move the function for moving
     over to the PlayerManager class...)
+
+21 Dec 2017
+    So here's the flow:
+    user clicks "travel here" or does an action
+    player begins moving
+    entities.tick() executed, looping over all entities to carry out logic
+    player finishes moving animation
+
+23 Dec 2017
+    you can now load a game, start load [savedata]

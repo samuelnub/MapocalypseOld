@@ -10977,13 +10977,13 @@ const locale = {
     },
     game: {
         docStartCmd: "start",
-        docStartArgs: ["new | save", "save: savedata"],
+        docStartArgs: ["new | load", "load: savedata"],
         docStartDesc: "Either starts a new game, or loads a savefile that you provide.",
         get startCommandNoArgs() {
-            return "Do you want a [" + locale.game.startCommandNewArg + "] game or one from a previous [" + locale.game.startCommandSaveArg + "]?";
+            return "Do you want to " + locale.game.docStartCmd + " [" + locale.game.startCommandNewArg + "] or one from a previous [" + locale.game.startCommandLoadArg + "]?";
         },
         startCommandNewArg: "new",
-        startCommandSaveArg: "save",
+        startCommandLoadArg: "load",
         startCommandNewSpawn: "Click the position you want to spawn at.",
         startCommandNewGoal: "Now click the position you're going to aim for. (Preferably a reasonable distance away from your spawn position - but hey, who am I to judge?)",
         get startCommandNewSpawnButton() {
@@ -11241,6 +11241,7 @@ exports.mapStyle = mapStyle;
 const helpers = require("./helpers");
 const locale = require("../res/localisation").locale;
 const GameConsole = require("./game-console");
+const GameData = require("./game-data");
 
 const PlayerManager = require("./entities/player-manager");
 
@@ -11272,6 +11273,21 @@ const entityTypesMarkerParams = {
     }
 };
 
+const entityStatNames = {
+    position: "position",
+    health: "health",
+    blood: "blood",
+    stamina: "stamina",
+    hunger: "hunger",
+    thirst: "thirst",
+    happiness: "happiness",
+    alertness: "alertness",
+    temperature: "temperature",
+    inventory: "inventory",
+    effects: "effects"
+};
+exports.entityStatNames = entityStatNames;
+
 function Entities(game) {
     /*
     Manager for the base class for moving markers on the map, with stats like health etc
@@ -11299,39 +11315,8 @@ Entities.prototype.setupEventListeners = function() {
     this.game.gameConsole.addEventListener(GameConsole.events.game.gameStartNew, function(items) {
         this.onGameStart(items).bind(this);
     }.bind(this));
-    this.game.gameConsole.addEventListener(GameConsole.events.game.gameStartLoad, function() {
-        this.onGameStart().bind(this);
-    }.bind(this));
-
-    this.game.gameConsole.addEventListener(GameConsole.events.gameMap.printMapContextMenu, function(items) {
-        // because clicking the map isn't directly related to the player
-        // entity, we need to listen out for general map clicks
-        if(this.entityManagers[entityTypes.player].entityIds.size > 0) {
-            // the player exists, cool
-            let playerEntity = this.entityList[this.entityManagers[entityTypes.player].getPlayerEntityId()];
-            let newPosAttempt = items.contextEvent.latLng;
-            let curPos = playerEntity.stats.position;
-
-            items.appendOption({
-                text: locale.entities.player.moveToButton,
-                callback: function(e) {
-                    
-                    if(helpers.distBetweenLatLngKm(curPos, newPosAttempt) > maxMoveRadiusKm) {
-                        this.game.gameConsole.writeLine(locale.general.noThatsTooFar);
-                        return;
-                    }
-                    this.game.gameMap.isPosWater(newPosAttempt, function(isWater) {
-                        if(isWater) {
-                            this.game.gameConsole.writeLine(locale.general.noThatsWater);
-                            return;
-                        }
-                        playerEntity.move(newPosAttempt, true, function(e) {
-                            console.log("Player just finished moving (should tick now)");
-                        });
-                    }.bind(this));
-                }.bind(this)
-            });
-        }
+    this.game.gameConsole.addEventListener(GameConsole.events.game.gameStartLoad, function(items) {
+        this.onGameStart(items).bind(this); // items is savedata
     }.bind(this));
 }
 
@@ -11344,7 +11329,7 @@ Entities.prototype.onGameStart = function(items) {
         this.remove(this.entityList[id]);
     }
 
-    if(items) { // from new
+    if(!items.hasOwnProperty(GameData.savedataLayout.checkNum)) { // from new
         let playerEntity = new Entity({
             game: this.game,
             type: entityTypes.player,
@@ -11354,7 +11339,14 @@ Entities.prototype.onGameStart = function(items) {
         });
     }
     else { // from load
-
+        let entitiesSavedata = items[GameData.savedataLayout.entities];
+        for(const id of Object.keys(entitiesSavedata)) {
+            let params = entitiesSavedata[id];
+            params.stats[entityStatNames.position] = new google.maps.LatLng(params.stats[entityStatNames.position]); // the pain of google's LatLng objects
+            params.prevStats[entityStatNames.position] = new google.maps.LatLng(params.prevStats[entityStatNames.position]);            
+            params.game = this.game;
+            let entity = new Entity(params);
+        }
     }
 }
 
@@ -11371,6 +11363,17 @@ Entities.prototype.tick = function() {
     for(const id of Object.keys(this.entityList)) {
         this.entityManagers[this.entityList[id].type].tick(this.entityList[id]);
     }
+}
+
+Entities.prototype.getSavedata = function() {
+    /*
+    returns the current entities (as their exported form)
+    */
+    let output = {};
+    for(const id of Object.keys(this.entityList)) {
+        output[id] = this.entityList[id].export();
+    }
+    return output;
 }
 
 function Entity(params) {
@@ -11391,6 +11394,8 @@ function Entity(params) {
             temperature: float
             inventory: [],
             effects: []
+        prevStats object:
+            refer to stats
     */
     this.game = params.game;
     this.id = params.id || helpers.uuid();
@@ -11399,19 +11404,22 @@ function Entity(params) {
     this.game.entities.entityList[this.id] = this;
     this.game.entities.entityManagers[this.type].entityIds.add(this.id);
 
-    this.stats = {
-        position: params.stats.position || new google.maps.LatLng(0, 0),
-        health: params.stats.health || 1.0,
-        blood: params.stats.blood || 1.0,
-        stamina: params.stats.stamina || 1.0,
-        hunger: params.stats.hunger || 0.0,
-        thirst: params.stats.thirst || 0.0,
-        happiness: params.stats.happiness || 0.5,
-        alertness: params.stats.alertness || 0.5,
-        temperature: params.stats.temperature || 0.5,
-        inventory: params.stats.inventory || [],
-        effects: params.stats.effects || []
+    this.stats = { // current stats
+        [entityStatNames.position]: params.stats.position || new google.maps.LatLng(0, 0),
+        [entityStatNames.health]: params.stats.health || 1.0,
+        [entityStatNames.blood]: params.stats.blood || 1.0,
+        [entityStatNames.stamina]: params.stats.stamina || 1.0,
+        [entityStatNames.hunger]: params.stats.hunger || 0.0,
+        [entityStatNames.thirst]: params.stats.thirst || 0.0,
+        [entityStatNames.happiness]: params.stats.happiness || 0.5,
+        [entityStatNames.alertness]: params.stats.alertness || 0.5,
+        [entityStatNames.temperature]: params.stats.temperature || 0.5,
+        [entityStatNames.inventory]: params.stats.inventory || [],
+        [entityStatNames.effects]: params.stats.effects || []
     };
+
+    this.prevStats = {}; // previous attributes for delta, remember to setStats() whenever you wanna change something
+    Object.assign(this.prevStats, params.prevStats || this.stats);
 
     let markerParams = entityTypesMarkerParams[this.type];
     markerParams.position = this.stats.position;
@@ -11423,24 +11431,25 @@ function Entity(params) {
     this.marker = this.game.gameMap.createMarker(markerParams);
 }
 
-Entity.prototype.move = function(position, adjustStats, callback) {
+Entity.prototype.move = function(position) {
     /*
     Moves the entity's marker and stats position.
-    if adjustStats is true, it'll also decrement/increment stats
+    Reminder: these are animated markers. the getPosition() function will return the ultimate pos,
+    but there will be a timespan between you visually seeing the marker move
 
     position: latLng
-    adjustStats: bool
-    callback: function
-        newPos = latLng
     */
-
+    this.setStat(entityStatNames.position, position);
     this.marker.setPosition(position);
-    this.stats.position = position;
+}
 
-    if(adjustStats) {
-        // TODO: complex shazam
-    }
-    // update stats.position too
+Entity.prototype.setStat = function(statName, value) {
+    /*
+    statName: entityStatNames (string)
+    value: value you want to set...
+    */
+    Object.assign(this.prevStats[statName], this.stats[statName]);
+    Object.assign(this.stats[statName], value);
 }
 
 Entity.prototype.export = function() {
@@ -11450,12 +11459,16 @@ Entity.prototype.export = function() {
     return {
         id: this.id,
         type: this.type,
-        stats: this.stats
+        stats: this.stats,
+        prevStats: this.prevStats
     };
 }
 
-},{"../res/localisation":6,"./entities/player-manager":9,"./game-console":10,"./helpers":14}],9:[function(require,module,exports){
+},{"../res/localisation":6,"./entities/player-manager":9,"./game-console":10,"./game-data":11,"./helpers":14}],9:[function(require,module,exports){
+const locale = require("../../res/localisation").locale;
+const helpers = require("../helpers");
 const GameConsole = require("../game-console");
+const Entities = require("../entities");
 
 exports.PlayerManager = PlayerManager;
 function PlayerManager(game) {
@@ -11467,6 +11480,36 @@ function PlayerManager(game) {
     this.game = game;
 
     this.entityIds = new Set();
+
+    this.game.gameConsole.addEventListener(GameConsole.events.gameMap.printMapContextMenu, function(items) {
+        // because clicking the map isn't directly related to the player
+        // entity, we need to listen out for general map clicks
+        if(this.entityIds.size > 0) {
+            // the player exists, cool
+            let playerEntity = this.game.entities.entityList[this.getPlayerEntityId()];
+            let newPosAttempt = items.contextEvent.latLng;
+            let curPos = playerEntity.stats.position;
+
+            items.appendOption({
+                text: locale.entities.player.moveToButton,
+                callback: function(e) {
+                    
+                    if(helpers.distBetweenLatLngKm(curPos, newPosAttempt) > Entities.maxMoveRadiusKm) {
+                        this.game.gameConsole.writeLine(locale.general.noThatsTooFar);
+                        return;
+                    }
+                    this.game.gameMap.isPosWater(newPosAttempt, function(isWater) {
+                        if(isWater) {
+                            this.game.gameConsole.writeLine(locale.general.noThatsWater);
+                            return;
+                        }
+                        playerEntity.move(newPosAttempt);
+                        this.game.entities.tick();
+                    }.bind(this));
+                }.bind(this)
+            });
+        }
+    }.bind(this));
 }
 
 PlayerManager.prototype.tick = function(entity) {
@@ -11497,7 +11540,7 @@ PlayerManager.prototype.getPlayerEntityId = function() {
     */
     return this.entityIds.values().next().value; // it's a hellhole
 }
-},{"../game-console":10}],10:[function(require,module,exports){
+},{"../../res/localisation":6,"../entities":8,"../game-console":10,"../helpers":14}],10:[function(require,module,exports){
 const locale = require("../res/localisation").locale;
 const helpers = require("./helpers");
 
@@ -11813,6 +11856,15 @@ const GameConsole = require("./game-console");
 
 exports.GameData = GameData;
 
+const savedataLayout = {
+    checkNum: "checkNum",
+    seed: "seed",
+    time: "time",
+    entities: "entities",
+    places: "places"
+};
+exports.savedataLayout = savedataLayout;
+
 function GameData(game) {
     /*
     Stores data about the game that other classes have constant access to,
@@ -11824,15 +11876,11 @@ function GameData(game) {
     this.game = game;
 
     this.savedata = { // remember, JSON can't have functions
-        checkNumber: 123456789,
-        seed: null,
-        time: "",
-        entities: {
-            player: null,
-            enemies: [],
-            goal: null
-        },
-        places: {} // key: placeId, value: overwritten stats
+        [savedataLayout.checkNum]: 123456789,
+        [savedataLayout.seed]: "",
+        [savedataLayout.time]: "",
+        [savedataLayout.entities]: {},
+        [savedataLayout.places]: {}
     };
 
     this.setupCommands();
@@ -11873,20 +11921,28 @@ GameData.prototype.setupCommands = function() {
     this.game.gameConsole.addCommandListener(saveCommand);
 }
 
-GameData.prototype.load = function(savedata) {
+GameData.prototype.load = function(savedata, callback) {
     /*
     Loads/decompresses and parses what's given, overriding the current data
 
     savedata = string
+
+    callback = function
+        savedata = savedata object reference
     */
     setTimeout(function() {
         try {
             let compressed = JSON.parse(savedata); // now it's an array of numbers
             let loadedData = JSON.parse(this.decompress(compressed));
             
-            if("checkNumber" in loadedData && loadedData.checkNumber === this.savedata.checkNumber) {
+            if(loadedData.hasOwnProperty(savedataLayout.checkNum) && loadedData[savedataLayout.checkNum] === this.savedata[savedataLayout.checkNum]) {
                 this.savedata = Object.assign({}, loadedData);
                 this.game.gameConsole.writeLine(locale.gameData.loadCommandSuccessful);
+                console.log("Loaded. Here's the savedata object now:");
+                console.log(this.savedata);
+                if(typeof callback === "function") {
+                    callback(this.savedata);
+                }
             }
             else {
                 throw "Something didn't quite match up when loading the savedata";
@@ -11907,12 +11963,22 @@ GameData.prototype.save = function(callback) {
         savedata = string
     */
     setTimeout(function() {
+        this.grabSavedataFromOtherClasses();
         // it returns an array, so we gotta stringify it again lol
         let savedata = JSON.stringify(this.compress(JSON.stringify(this.savedata)));
         if(typeof callback === "function") {
             callback(savedata);
         }
     }.bind(this), 0);
+}
+
+GameData.prototype.grabSavedataFromOtherClasses = function() {
+    /*
+    returns nothing,
+    sets this.savedata according to the things that currently need saving,
+    will be updated manually
+    */
+    this.savedata[savedataLayout.entities] = this.game.entities.getSavedata();
 }
 
 GameData.prototype.compress = function(uncompressed) {
@@ -12105,6 +12171,7 @@ GameMap.prototype.printMapContextMenu = function(contextEvent, entity) {
                 this.game.gameConsole.removeLine(lineP);
                 this.mapContextMenuLineP = null;
             }.bind(this));
+            optionsEle.appendChild(document.createElement("br"));
             optionsEle.appendChild(optionButt);
             // TODO: sort and insert list element
         }.bind(this);
@@ -12313,9 +12380,10 @@ Game.prototype.setupCommands = function() {
 
                 getSpawnPos();
             }
-            else if(args[0] === locale.game.startCommandSaveArg) {
-                this.gameData.load(args[1]);
-                this.gameConsole.executeEvent(GameConsole.events.game.gameStart); // no items passed - assume that other classes will read off of savedata in gamedata
+            else if(args[0] === locale.game.startCommandLoadArg) {
+                this.gameData.load(args[1], function(savedata) {
+                    this.gameConsole.executeEvent(GameConsole.events.game.gameStartLoad, savedata);                 
+                }.bind(this));
             }
         }.bind(this)
     );

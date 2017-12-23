@@ -4,6 +4,15 @@ const GameConsole = require("./game-console");
 
 exports.GameData = GameData;
 
+const savedataLayout = {
+    checkNum: "checkNum",
+    seed: "seed",
+    time: "time",
+    entities: "entities",
+    places: "places"
+};
+exports.savedataLayout = savedataLayout;
+
 function GameData(game) {
     /*
     Stores data about the game that other classes have constant access to,
@@ -15,15 +24,11 @@ function GameData(game) {
     this.game = game;
 
     this.savedata = { // remember, JSON can't have functions
-        checkNumber: 123456789,
-        seed: null,
-        time: "",
-        entities: {
-            player: null,
-            enemies: [],
-            goal: null
-        },
-        places: {} // key: placeId, value: overwritten stats
+        [savedataLayout.checkNum]: 123456789,
+        [savedataLayout.seed]: "",
+        [savedataLayout.time]: "",
+        [savedataLayout.entities]: {},
+        [savedataLayout.places]: {}
     };
 
     this.setupCommands();
@@ -64,20 +69,28 @@ GameData.prototype.setupCommands = function() {
     this.game.gameConsole.addCommandListener(saveCommand);
 }
 
-GameData.prototype.load = function(savedata) {
+GameData.prototype.load = function(savedata, callback) {
     /*
     Loads/decompresses and parses what's given, overriding the current data
 
     savedata = string
+
+    callback = function
+        savedata = savedata object reference
     */
     setTimeout(function() {
         try {
             let compressed = JSON.parse(savedata); // now it's an array of numbers
             let loadedData = JSON.parse(this.decompress(compressed));
             
-            if("checkNumber" in loadedData && loadedData.checkNumber === this.savedata.checkNumber) {
+            if(loadedData.hasOwnProperty(savedataLayout.checkNum) && loadedData[savedataLayout.checkNum] === this.savedata[savedataLayout.checkNum]) {
                 this.savedata = Object.assign({}, loadedData);
                 this.game.gameConsole.writeLine(locale.gameData.loadCommandSuccessful);
+                console.log("Loaded. Here's the savedata object now:");
+                console.log(this.savedata);
+                if(typeof callback === "function") {
+                    callback(this.savedata);
+                }
             }
             else {
                 throw "Something didn't quite match up when loading the savedata";
@@ -98,12 +111,22 @@ GameData.prototype.save = function(callback) {
         savedata = string
     */
     setTimeout(function() {
+        this.grabSavedataFromOtherClasses();
         // it returns an array, so we gotta stringify it again lol
         let savedata = JSON.stringify(this.compress(JSON.stringify(this.savedata)));
         if(typeof callback === "function") {
             callback(savedata);
         }
     }.bind(this), 0);
+}
+
+GameData.prototype.grabSavedataFromOtherClasses = function() {
+    /*
+    returns nothing,
+    sets this.savedata according to the things that currently need saving,
+    will be updated manually
+    */
+    this.savedata[savedataLayout.entities] = this.game.entities.getSavedata();
 }
 
 GameData.prototype.compress = function(uncompressed) {

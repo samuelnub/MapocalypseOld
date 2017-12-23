@@ -73,13 +73,13 @@ const locale = {
     },
     game: {
         docStartCmd: "start",
-        docStartArgs: ["new | save", "save: savedata"],
+        docStartArgs: ["new | load", "load: savedata"],
         docStartDesc: "Either starts a new game, or loads a savefile that you provide.",
         get startCommandNoArgs() {
-            return "Do you want a [" + locale.game.startCommandNewArg + "] game or one from a previous [" + locale.game.startCommandSaveArg + "]?";
+            return "Do you want to " + locale.game.docStartCmd + " [" + locale.game.startCommandNewArg + "] or one from a previous [" + locale.game.startCommandLoadArg + "]?";
         },
         startCommandNewArg: "new",
-        startCommandSaveArg: "save",
+        startCommandLoadArg: "load",
         startCommandNewSpawn: "Click the position you want to spawn at.",
         startCommandNewGoal: "Now click the position you're going to aim for. (Preferably a reasonable distance away from your spawn position - but hey, who am I to judge?)",
         get startCommandNewSpawnButton() {
