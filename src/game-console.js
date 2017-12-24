@@ -18,9 +18,15 @@ const events = {
             ...
         ...
     */
+    entities: {
+        goal: {
+            finish: helpers.uuid()
+        }
+    },
     game: {
         gameStartNew: helpers.uuid(), 
-        gameStartLoad: helpers.uuid() // this makes the other classes read from the savedata of gamedata
+        gameStartLoad: helpers.uuid(),
+        gameFinish: helpers.uuid()
     },
     gameMap: {
         printMapContextMenu: helpers.uuid()

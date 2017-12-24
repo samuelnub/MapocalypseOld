@@ -22,6 +22,7 @@ function Game() {
     this.tests = new Tests.Tests(this);
 
     this.setupCommands();
+    this.setupEventListeners();
 }
 
 Game.prototype.setupCommands = function() {
@@ -94,4 +95,18 @@ Game.prototype.setupCommands = function() {
         }.bind(this)
     );
     this.gameConsole.addCommandListener(startCommand);
+}
+
+Game.prototype.setupEventListeners = function() {
+    window.onbeforeunload = function() {
+        // remember to save up, boyz
+        return locale.general.nothing;
+    };
+
+    this.gameConsole.addEventListener(GameConsole.events.entities.goal.finish, function(items) {
+        this.gameConsole.executeEvent(GameConsole.events.game.gameFinish);
+        this.gameConsole.writeLine(locale.game.gameFinishMessage, true, function(lineP) {
+            lineP.classList.add(locale.styling.specialClass);
+        });
+    }.bind(this));
 }

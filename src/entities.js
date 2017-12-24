@@ -4,6 +4,7 @@ const GameConsole = require("./game-console");
 const GameData = require("./game-data");
 
 const PlayerManager = require("./entities/player-manager");
+const GoalManager = require("./entities/goal-manager");
 
 exports.Entities = Entities;
 exports.Entity = Entity;
@@ -65,7 +66,8 @@ function Entities(game) {
             this.tick = function(entity)
             this.onClick = function(entity)
         */
-        [entityTypes.player]: new PlayerManager.PlayerManager(game)
+        [entityTypes.player]: new PlayerManager.PlayerManager(game),
+        [entityTypes.goal]: new GoalManager.GoalManager(game)
     };
     
     this.setupEventListeners();
@@ -95,6 +97,13 @@ Entities.prototype.onGameStart = function(items) {
             type: entityTypes.player,
             stats: {
                 position: items.spawnPos
+            }
+        });
+        let goalEntity = new Entity({
+            game: this.game,
+            type: entityTypes.goal,
+            stats: {
+                position: items.goalPos
             }
         });
     }

@@ -91,3 +91,7 @@
 
 23 Dec 2017
     you can now load a game, start load [savedata]
+    game can finish now, with a coolio "congratulations" message
+    upcoming: possibly "actions" which manifests themselves as context menu options,
+    and will cause modifications to the entity's stats (like moving - changes position
+    and also stamina etc);

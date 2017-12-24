@@ -22,7 +22,7 @@ const locale = {
             moveToButton: "Travel here"
         },
         goal: {
-
+            finishButton: "End your travels - Finally"
         }
     },
     gameConsole: {
@@ -49,7 +49,7 @@ const locale = {
                 "If you neeed help, just type '" + locale.gameConsole.docHelpCmd + "',",
                 "and some underpaid civil service workers will come to your assistance!",
                 "Good luck, buddy."
-            ].join("<br>");
+            ].join(locale.styling.brTag);
         },
         helpHelpFor: "Help for ",
         helpSyntax: "Syntax: ",
@@ -87,6 +87,16 @@ const locale = {
         },
         get startCommandNewGoalButton() {
             return locale.general.select + " this as the goal position";
+        },
+        get gameFinishMessage() {
+            return [
+                "Congratulations!",
+                "<img src=\"" + locale.files.iconsPath + locale.files.icons.trophy + locale.files.iconFiletype + "\">",
+                "You've trudged your way through a harsh land for days on end",
+                "(well, not if you set your objective like a foot away from your spawn point)",
+                "And you've finally made it to safety.",
+                "(Pretend there's a cool scene where you get flown out via a helicopter)"
+            ].join(locale.styling.brTag);
         }
     },
     general: {
@@ -108,8 +118,13 @@ const locale = {
             enemy: "enemy",
             unknown: "unknown",
             point: "point",
-            goal: "goal"
+            goal: "goal",
+            trophy: "trophy"
         }
+    },
+    styling: {
+        brTag: "<br>",
+        specialClass: "special",
     }
 };
 exports.locale = locale;

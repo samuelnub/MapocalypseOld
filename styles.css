@@ -22,13 +22,14 @@ body {
 #console {
     --console-padding: 6px;
     --console-font-size: 1.1em;
+    --console-green: rgba(50, 255, 50, 0.5);
 
     position: absolute;
     right: 5%;
     bottom: 5%;
     z-index: 10;
     background-color: rgba(0, 0, 0, 0.5);
-    border: 2px solid rgba(50, 255, 50, 0.5);
+    border: 2px solid var(--console-green);
     font-size: var(--console-font-size);
     text-align: left;
     color: white;
@@ -93,11 +94,23 @@ body {
     background-color: rgba(50, 50, 50, 0.1);
 }
 
+#console-text-area-log>.special {
+    border: 2px solid var(--console-green);
+    text-align: center;
+    font-size: calc(var(--console-font-size) + 0.3em);
+    font-weight: lighter;
+}
+
+#console-text-area-log>.special>img {
+    max-width: 50%;
+    max-height: 150px;
+}
+
 #console-text-area-log button {
     margin: 0px;
     padding: 0px;
     border: none;
-    background-color: rgba(50, 255, 50, 0.5);
+    background-color: var(--console-green);
     outline: none;
     cursor: pointer;
     font-family: inherit;
@@ -127,5 +140,5 @@ body {
 }
 
 #console-text-area-input[type="text"]:hover {
-    background-color: rgba(50, 255, 50, 0.5);
+    background-color: var(--console-green);
 }

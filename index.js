@@ -10926,7 +10926,7 @@ const locale = {
             moveToButton: "Travel here"
         },
         goal: {
-
+            finishButton: "End your travels - Finally"
         }
     },
     gameConsole: {
@@ -10953,7 +10953,7 @@ const locale = {
                 "If you neeed help, just type '" + locale.gameConsole.docHelpCmd + "',",
                 "and some underpaid civil service workers will come to your assistance!",
                 "Good luck, buddy."
-            ].join("<br>");
+            ].join(locale.styling.brTag);
         },
         helpHelpFor: "Help for ",
         helpSyntax: "Syntax: ",
@@ -10991,6 +10991,16 @@ const locale = {
         },
         get startCommandNewGoalButton() {
             return locale.general.select + " this as the goal position";
+        },
+        get gameFinishMessage() {
+            return [
+                "Congratulations!",
+                "<img src=\"" + locale.files.iconsPath + locale.files.icons.trophy + locale.files.iconFiletype + "\">",
+                "You've trudged your way through a harsh land for days on end",
+                "(well, not if you set your objective like a foot away from your spawn point)",
+                "And you've finally made it to safety.",
+                "(Pretend there's a cool scene where you get flown out via a helicopter)"
+            ].join(locale.styling.brTag);
         }
     },
     general: {
@@ -11012,13 +11022,18 @@ const locale = {
             enemy: "enemy",
             unknown: "unknown",
             point: "point",
-            goal: "goal"
+            goal: "goal",
+            trophy: "trophy"
         }
+    },
+    styling: {
+        brTag: "<br>",
+        specialClass: "special",
     }
 };
 exports.locale = locale;
 },{}],7:[function(require,module,exports){
-const mapStyle = [
+const mapStyleDay = [
     {
         "elementType": "geometry",
         "stylers": [
@@ -11236,7 +11251,242 @@ const mapStyle = [
         ]
     }
 ];
-exports.mapStyle = mapStyle;
+exports.mapStyleDay = mapStyleDay;
+
+const mapStyleNight = [
+    {
+        "elementType": "geometry",
+        "stylers": [
+            {
+                "color": "#1d2c4d"
+            }
+        ]
+    },
+    {
+        "elementType": "labels.text.fill",
+        "stylers": [
+            {
+                "color": "#8ec3b9"
+            }
+        ]
+    },
+    {
+        "elementType": "labels.text.stroke",
+        "stylers": [
+            {
+                "color": "#1a3646"
+            }
+        ]
+    },
+    {
+        "featureType": "administrative.country",
+        "elementType": "geometry.stroke",
+        "stylers": [
+            {
+                "color": "#4b6878"
+            }
+        ]
+    },
+    {
+        "featureType": "administrative.land_parcel",
+        "elementType": "labels.text.fill",
+        "stylers": [
+            {
+                "color": "#64779e"
+            }
+        ]
+    },
+    {
+        "featureType": "administrative.province",
+        "elementType": "geometry.stroke",
+        "stylers": [
+            {
+                "color": "#4b6878"
+            }
+        ]
+    },
+    {
+        "featureType": "landscape.man_made",
+        "elementType": "geometry.stroke",
+        "stylers": [
+            {
+                "color": "#334e87"
+            }
+        ]
+    },
+    {
+        "featureType": "landscape.natural",
+        "elementType": "geometry",
+        "stylers": [
+            {
+                "color": "#03597e"
+            }
+        ]
+    },
+    {
+        "featureType": "poi",
+        "elementType": "geometry",
+        "stylers": [
+            {
+                "color": "#283d6a"
+            }
+        ]
+    },
+    {
+        "featureType": "poi",
+        "elementType": "labels.text.fill",
+        "stylers": [
+            {
+                "color": "#6f9ba5"
+            }
+        ]
+    },
+    {
+        "featureType": "poi",
+        "elementType": "labels.text.stroke",
+        "stylers": [
+            {
+                "color": "#1d2c4d"
+            }
+        ]
+    },
+    {
+        "featureType": "poi.park",
+        "elementType": "geometry.fill",
+        "stylers": [
+            {
+                "color": "#023e58"
+            }
+        ]
+    },
+    {
+        "featureType": "poi.park",
+        "elementType": "labels.text.fill",
+        "stylers": [
+            {
+                "color": "#3C7680"
+            }
+        ]
+    },
+    {
+        "featureType": "road",
+        "elementType": "geometry",
+        "stylers": [
+            {
+                "color": "#304a7d"
+            }
+        ]
+    },
+    {
+        "featureType": "road",
+        "elementType": "labels.text.fill",
+        "stylers": [
+            {
+                "color": "#98a5be"
+            }
+        ]
+    },
+    {
+        "featureType": "road",
+        "elementType": "labels.text.stroke",
+        "stylers": [
+            {
+                "color": "#1d2c4d"
+            }
+        ]
+    },
+    {
+        "featureType": "road.highway",
+        "elementType": "geometry",
+        "stylers": [
+            {
+                "color": "#2c6675"
+            }
+        ]
+    },
+    {
+        "featureType": "road.highway",
+        "elementType": "geometry.stroke",
+        "stylers": [
+            {
+                "color": "#255763"
+            }
+        ]
+    },
+    {
+        "featureType": "road.highway",
+        "elementType": "labels.text.fill",
+        "stylers": [
+            {
+                "color": "#b0d5ce"
+            }
+        ]
+    },
+    {
+        "featureType": "road.highway",
+        "elementType": "labels.text.stroke",
+        "stylers": [
+            {
+                "color": "#023e58"
+            }
+        ]
+    },
+    {
+        "featureType": "transit",
+        "elementType": "labels.text.fill",
+        "stylers": [
+            {
+                "color": "#98a5be"
+            }
+        ]
+    },
+    {
+        "featureType": "transit",
+        "elementType": "labels.text.stroke",
+        "stylers": [
+            {
+                "color": "#1d2c4d"
+            }
+        ]
+    },
+    {
+        "featureType": "transit.line",
+        "elementType": "geometry.fill",
+        "stylers": [
+            {
+                "color": "#283d6a"
+            }
+        ]
+    },
+    {
+        "featureType": "transit.station",
+        "elementType": "geometry",
+        "stylers": [
+            {
+                "color": "#3a4762"
+            }
+        ]
+    },
+    {
+        "featureType": "water",
+        "elementType": "geometry",
+        "stylers": [
+            {
+                "color": "#182643"
+            }
+        ]
+    },
+    {
+        "featureType": "water",
+        "elementType": "labels.text.fill",
+        "stylers": [
+            {
+                "color": "#4e6d70"
+            }
+        ]
+    }
+];
+exports.mapStyleNight = mapStyleNight;
 },{}],8:[function(require,module,exports){
 const helpers = require("./helpers");
 const locale = require("../res/localisation").locale;
@@ -11244,11 +11494,12 @@ const GameConsole = require("./game-console");
 const GameData = require("./game-data");
 
 const PlayerManager = require("./entities/player-manager");
+const GoalManager = require("./entities/goal-manager");
 
 exports.Entities = Entities;
 exports.Entity = Entity;
 
-const maxMoveRadiusKm = 5;
+const maxMoveRadiusKm = 10;
 exports.maxMoveRadiusKm = maxMoveRadiusKm;
 
 const entityTypes = {
@@ -11305,7 +11556,8 @@ function Entities(game) {
             this.tick = function(entity)
             this.onClick = function(entity)
         */
-        [entityTypes.player]: new PlayerManager.PlayerManager(game)
+        [entityTypes.player]: new PlayerManager.PlayerManager(game),
+        [entityTypes.goal]: new GoalManager.GoalManager(game)
     };
     
     this.setupEventListeners();
@@ -11335,6 +11587,13 @@ Entities.prototype.onGameStart = function(items) {
             type: entityTypes.player,
             stats: {
                 position: items.spawnPos
+            }
+        });
+        let goalEntity = new Entity({
+            game: this.game,
+            type: entityTypes.goal,
+            stats: {
+                position: items.goalPos
             }
         });
     }
@@ -11464,7 +11723,56 @@ Entity.prototype.export = function() {
     };
 }
 
-},{"../res/localisation":6,"./entities/player-manager":9,"./game-console":10,"./game-data":11,"./helpers":14}],9:[function(require,module,exports){
+},{"../res/localisation":6,"./entities/goal-manager":9,"./entities/player-manager":10,"./game-console":11,"./game-data":12,"./helpers":15}],9:[function(require,module,exports){
+const helpers = require("../helpers");
+const Entities = require("../entities");
+const locale = require("../../res/localisation").locale;
+const GameConsole = require("../game-console");
+
+exports.GoalManager = GoalManager;
+function GoalManager(game) {
+    /*
+    manages the goal entity
+
+    game = game instance
+    */
+
+    this.game = game;
+
+    this.entityIds = new Set();
+}
+
+GoalManager.prototype.tick = function(entity) {
+    /*
+    entity = entity that was looped over
+    */
+
+}
+
+GoalManager.prototype.onClick = function(entity) {
+    /*
+    when that particular entity of this type is clicked
+    */
+    let entityList = this.game.entities.entityList;
+    if(helpers.distBetweenLatLngKm(entityList[this.getGoalEntityId()].stats[Entities.entityStatNames.position], entityList[this.game.entities.entityManagers[Entities.entityTypes.player].getPlayerEntityId()].stats[Entities.entityStatNames.position]) < Entities.maxMoveRadiusKm) {
+        this.game.gameConsole.addEventListener(GameConsole.events.gameMap.printMapContextMenu, function(items) {
+            items.appendOption({
+                text: locale.entities.goal.finishButton,
+                callback: function(e) {
+                    this.game.gameConsole.executeEvent(GameConsole.events.entities.goal.finish);
+                }.bind(this)
+            });
+        }.bind(this), true);
+    }
+}
+
+GoalManager.prototype.getGoalEntityId = function() {
+    /*
+    Just your friendly neighbourhood helper
+    */
+    return this.entityIds.values().next().value;
+}
+},{"../../res/localisation":6,"../entities":8,"../game-console":11,"../helpers":15}],10:[function(require,module,exports){
 const locale = require("../../res/localisation").locale;
 const helpers = require("../helpers");
 const GameConsole = require("../game-console");
@@ -11540,7 +11848,7 @@ PlayerManager.prototype.getPlayerEntityId = function() {
     */
     return this.entityIds.values().next().value; // it's a hellhole
 }
-},{"../../res/localisation":6,"../entities":8,"../game-console":10,"../helpers":14}],10:[function(require,module,exports){
+},{"../../res/localisation":6,"../entities":8,"../game-console":11,"../helpers":15}],11:[function(require,module,exports){
 const locale = require("../res/localisation").locale;
 const helpers = require("./helpers");
 
@@ -11561,9 +11869,15 @@ const events = {
             ...
         ...
     */
+    entities: {
+        goal: {
+            finish: helpers.uuid()
+        }
+    },
     game: {
         gameStartNew: helpers.uuid(), 
-        gameStartLoad: helpers.uuid() // this makes the other classes read from the savedata of gamedata
+        gameStartLoad: helpers.uuid(),
+        gameFinish: helpers.uuid()
     },
     gameMap: {
         printMapContextMenu: helpers.uuid()
@@ -11849,7 +12163,7 @@ function Documentation(command, args, description, callback) {
     self.description = description || locale.gameConsole.docUnimplementedDesc;
     self.callback = callback || function() { console.log("Unimplemented documentation of " + self.command); };
 }
-},{"../res/localisation":6,"./helpers":14}],11:[function(require,module,exports){
+},{"../res/localisation":6,"./helpers":15}],12:[function(require,module,exports){
 const locale = require("../res/localisation").locale;
 const helpers = require("./helpers");
 const GameConsole = require("./game-console");
@@ -12076,7 +12390,7 @@ PRNG.prototype.nextInRangeFloor = function (min, max) {
 PRNG.prototype.nextInRangeRound = function (min, max) {
     return Math.round(this.nextInRange(min, max));
 };
-},{"../res/localisation":6,"./game-console":10,"./helpers":14}],12:[function(require,module,exports){
+},{"../res/localisation":6,"./game-console":11,"./helpers":15}],13:[function(require,module,exports){
 const helpers = require("./helpers");
 const locale = require("../res/localisation").locale;
 const GameConsole = require("./game-console");
@@ -12096,19 +12410,22 @@ function GameMap(game) {
 
     this.mapDiv = document.createElement("div");
     this.mapDiv.id = "map";
-    const mapocalypseMapStyle = new google.maps.StyledMapType(
-        require("../res/map-style").mapStyle, {name: "Mapocalypse Style"});
+    const mapocalypseMapStyleDay = new google.maps.StyledMapType(
+        require("../res/map-styles").mapStyleDay, {name: "Mapocalypse Style Day"});
+    const mapocalypseMapStyleNight = new google.maps.StyledMapType(
+        require("../res/map-styles").mapStyleNight, {name: "Mapocalypse Style Night"});
     this.map = new google.maps.Map(this.mapDiv, {
         center: new google.maps.LatLng(53.551458, -1.923063),
-        zoom: 10,
+        zoom: 8,
         minZoom: 2,
         disableDefaultUI: true,
         mapTypeControlOptions: {
-            mapTypeIds: ["roadmap", "satellite", "hybrid", "terrain", "mapocalypse_style"]
+            mapTypeIds: ["roadmap", "satellite", "hybrid", "terrain", "mapocalypse_style_day", "mapocalypse_style_night"]
         }
     });
-    this.map.mapTypes.set("mapocalypse_style", mapocalypseMapStyle);
-    this.map.setMapTypeId("mapocalypse_style");
+    this.map.mapTypes.set("mapocalypse_style_day", mapocalypseMapStyleDay);
+    this.map.mapTypes.set("mapocalypse_style_night", mapocalypseMapStyleNight);
+    this.map.setMapTypeId("mapocalypse_style_day");
 
     this.placesService = new google.maps.places.PlacesService(this.map);
 
@@ -12171,8 +12488,8 @@ GameMap.prototype.printMapContextMenu = function(contextEvent, entity) {
                 this.game.gameConsole.removeLine(lineP);
                 this.mapContextMenuLineP = null;
             }.bind(this));
-            optionsEle.appendChild(document.createElement("br"));
             optionsEle.appendChild(optionButt);
+            optionsEle.appendChild(document.createElement("br"));
             // TODO: sort and insert list element
         }.bind(this);
     
@@ -12291,7 +12608,7 @@ GameMap.prototype.isPosWater = function(position, callback) {
         }
     }
 }
-},{"../res/localisation":6,"../res/map-style":7,"./game-console":10,"./helpers":14,"marker-animate-unobtrusive":3}],13:[function(require,module,exports){
+},{"../res/localisation":6,"../res/map-styles":7,"./game-console":11,"./helpers":15,"marker-animate-unobtrusive":3}],14:[function(require,module,exports){
 const locale = require("../res/localisation").locale;
 const helpers = require("./helpers");
 const GameMap = require("./game-map");
@@ -12316,6 +12633,7 @@ function Game() {
     this.tests = new Tests.Tests(this);
 
     this.setupCommands();
+    this.setupEventListeners();
 }
 
 Game.prototype.setupCommands = function() {
@@ -12389,7 +12707,21 @@ Game.prototype.setupCommands = function() {
     );
     this.gameConsole.addCommandListener(startCommand);
 }
-},{"../res/localisation":6,"./entities":8,"./game-console":10,"./game-data":11,"./game-map":12,"./helpers":14,"./tests":16}],14:[function(require,module,exports){
+
+Game.prototype.setupEventListeners = function() {
+    window.onbeforeunload = function() {
+        // remember to save up, boyz
+        return locale.general.nothing;
+    };
+
+    this.gameConsole.addEventListener(GameConsole.events.entities.goal.finish, function(items) {
+        this.gameConsole.executeEvent(GameConsole.events.game.gameFinish);
+        this.gameConsole.writeLine(locale.game.gameFinishMessage, true, function(lineP) {
+            lineP.classList.add(locale.styling.specialClass);
+        });
+    }.bind(this));
+}
+},{"../res/localisation":6,"./entities":8,"./game-console":11,"./game-data":12,"./game-map":13,"./helpers":15,"./tests":17}],15:[function(require,module,exports){
 
 exports.draggableElement = draggableElement;
 function draggableElement(elmnt) {
@@ -12561,7 +12893,7 @@ function copyToClipboard(text) {
   
     document.body.removeChild(textArea);
   }
-},{}],15:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 const Game = require("./game");
 
 window.onload = init;
@@ -12573,7 +12905,7 @@ function init() {
 }
 
 
-},{"../res/config":5,"./game":13}],16:[function(require,module,exports){
+},{"../res/config":5,"./game":14}],17:[function(require,module,exports){
 const GameConsole = require("./game-console");
 
 exports.Tests = Tests;
@@ -12627,4 +12959,4 @@ function Tests(game) {
         }.bind(this)
     ));
 }
-},{"../res/config":5,"./game-console":10}]},{},[15]);
+},{"../res/config":5,"./game-console":11}]},{},[16]);

@@ -17,19 +17,22 @@ function GameMap(game) {
 
     this.mapDiv = document.createElement("div");
     this.mapDiv.id = "map";
-    const mapocalypseMapStyle = new google.maps.StyledMapType(
-        require("../res/map-style").mapStyle, {name: "Mapocalypse Style"});
+    const mapocalypseMapStyleDay = new google.maps.StyledMapType(
+        require("../res/map-styles").mapStyleDay, {name: "Mapocalypse Style Day"});
+    const mapocalypseMapStyleNight = new google.maps.StyledMapType(
+        require("../res/map-styles").mapStyleNight, {name: "Mapocalypse Style Night"});
     this.map = new google.maps.Map(this.mapDiv, {
         center: new google.maps.LatLng(53.551458, -1.923063),
-        zoom: 10,
+        zoom: 8,
         minZoom: 2,
         disableDefaultUI: true,
         mapTypeControlOptions: {
-            mapTypeIds: ["roadmap", "satellite", "hybrid", "terrain", "mapocalypse_style"]
+            mapTypeIds: ["roadmap", "satellite", "hybrid", "terrain", "mapocalypse_style_day", "mapocalypse_style_night"]
         }
     });
-    this.map.mapTypes.set("mapocalypse_style", mapocalypseMapStyle);
-    this.map.setMapTypeId("mapocalypse_style");
+    this.map.mapTypes.set("mapocalypse_style_day", mapocalypseMapStyleDay);
+    this.map.mapTypes.set("mapocalypse_style_night", mapocalypseMapStyleNight);
+    this.map.setMapTypeId("mapocalypse_style_day");
 
     this.placesService = new google.maps.places.PlacesService(this.map);
 
