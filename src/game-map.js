@@ -192,7 +192,7 @@ GameMap.prototype.isPosWater = function(position, callback) {
     callback function: args:
         isWater = bool
     */
-    let mapUrl = "https://maps.googleapis.com/maps/api/staticmap?center="+position.lat()+","+position.lng()+"&zoom="+this.map.getZoom()+"&size=1x1&maptype=roadmap"
+    let mapUrl = "https://maps.googleapis.com/maps/api/staticmap?center="+position.lat()+","+position.lng()+"&zoom="+this.map.getZoom()+"&size=1x1&maptype=roadmap" + "&key=AIzaSyB2xmdChP2jXRld8zg6DkdZPnJRKGh2rjk"
     let canvas = document.createElement('canvas');
     let ctx = canvas.getContext('2d');
 
