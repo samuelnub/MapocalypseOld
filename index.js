@@ -11527,17 +11527,22 @@ const entityTypesMarkerParams = {
 const entityStatNames = {
     position: "position",
     health: "health",
-    blood: "blood",
-    stamina: "stamina",
     hunger: "hunger",
     thirst: "thirst",
-    happiness: "happiness",
-    alertness: "alertness",
-    temperature: "temperature",
     inventory: "inventory",
     effects: "effects"
 };
 exports.entityStatNames = entityStatNames;
+
+const entityStatDefaults = {
+    [entityStatNames.position]: new google.maps.LatLng(0, 0),
+    [entityStatNames.health]: 100,
+    [entityStatNames.hunger]: 0,
+    [entityStatNames.thirst]: 0,
+    [entityStatNames.inventory]: [],
+    [entityStatNames.effects]: []
+};
+exports.entityStatDefaults = entityStatDefaults;
 
 function Entities(game) {
     /*
@@ -11663,19 +11668,8 @@ function Entity(params) {
     this.game.entities.entityList[this.id] = this;
     this.game.entities.entityManagers[this.type].entityIds.add(this.id);
 
-    this.stats = { // current stats
-        [entityStatNames.position]: params.stats.position || new google.maps.LatLng(0, 0),
-        [entityStatNames.health]: params.stats.health || 1.0,
-        [entityStatNames.blood]: params.stats.blood || 1.0,
-        [entityStatNames.stamina]: params.stats.stamina || 1.0,
-        [entityStatNames.hunger]: params.stats.hunger || 0.0,
-        [entityStatNames.thirst]: params.stats.thirst || 0.0,
-        [entityStatNames.happiness]: params.stats.happiness || 0.5,
-        [entityStatNames.alertness]: params.stats.alertness || 0.5,
-        [entityStatNames.temperature]: params.stats.temperature || 0.5,
-        [entityStatNames.inventory]: params.stats.inventory || [],
-        [entityStatNames.effects]: params.stats.effects || []
-    };
+    this.stats = {};
+    Object.assign(this.stats, entityStatDefaults);
 
     this.prevStats = {}; // previous attributes for delta, remember to setStats() whenever you wanna change something
     Object.assign(this.prevStats, params.prevStats || this.stats);
@@ -12585,7 +12579,7 @@ GameMap.prototype.isPosWater = function(position, callback) {
     callback function: args:
         isWater = bool
     */
-    let mapUrl = "http://maps.googleapis.com/maps/api/staticmap?center="+position.lat()+","+position.lng()+"&zoom="+this.map.getZoom()+"&size=1x1&maptype=roadmap"
+    let mapUrl = "https://maps.googleapis.com/maps/api/staticmap?center="+position.lat()+","+position.lng()+"&zoom="+this.map.getZoom()+"&size=1x1&maptype=roadmap" + "&key=AIzaSyB2xmdChP2jXRld8zg6DkdZPnJRKGh2rjk";
     let canvas = document.createElement('canvas');
     let ctx = canvas.getContext('2d');
 
@@ -12608,6 +12602,7 @@ GameMap.prototype.isPosWater = function(position, callback) {
         }
     }
 }
+
 },{"../res/localisation":6,"../res/map-styles":7,"./game-console":11,"./helpers":15,"marker-animate-unobtrusive":3}],14:[function(require,module,exports){
 const locale = require("../res/localisation").locale;
 const helpers = require("./helpers");
